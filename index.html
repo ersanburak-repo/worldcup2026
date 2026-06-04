@@ -2,8 +2,16 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>2026 Dünya Kupası Tahmin Yarışması</title>
+<!-- PWA -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="WC2026 Tahmin">
+<meta name="theme-color" content="#0F1C2E">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%230F1C2E' rx='20'/><text y='.9em' font-size='80' x='10'>⚽</text></svg>">
+<link rel="manifest" href="data:application/json,{&quot;name&quot;:&quot;2026 Dünya Kupası Tahmin&quot;,&quot;short_name&quot;:&quot;WC2026&quot;,&quot;start_url&quot;:&quot;/&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;background_color&quot;:&quot;%23F7F3EE&quot;,&quot;theme_color&quot;:&quot;%230F1C2E&quot;,&quot;orientation&quot;:&quot;portrait&quot;}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -17,6 +25,17 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased;}
+
+/* iOS klavye scroll fix */
+@supports (-webkit-touch-callout: none) {
+  .modal-overlay { position:fixed; height:100%; }
+  .modal { max-height:85vh; overflow-y:auto; }
+}
+input, textarea {
+  scroll-margin-bottom: 80px;
+  -webkit-user-select: text;
+  user-select: text;
+}
 .hero{background:linear-gradient(160deg,#0F1C2E 0%,#162440 50%,#0A1525 100%);border-bottom:1px solid var(--border);padding:2rem 1.25rem 1.5rem;position:relative;overflow:hidden;}
 .hero::before{content:'⚽';position:absolute;font-size:180px;right:-30px;top:-20px;opacity:.06;pointer-events:none;}
 .hero-eyebrow{font-size:11px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:#4ADE80;margin-bottom:.5rem;}
@@ -27,7 +46,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 .hero-stat-val{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:#4ADE80;line-height:1;}
 .hero-stat-label{font-size:10px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.06em;}
 .admin-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(0,192,106,.15);border:1px solid rgba(0,192,106,.4);color:#00C06A;font-size:11px;font-weight:500;padding:3px 10px;border-radius:99px;margin-top:.75rem;}
-.modal-overlay{position:fixed;inset:0;background:rgba(15,28,46,.75);backdrop-filter:blur(12px);z-index:100;display:flex;align-items:center;justify-content:center;padding:1.25rem;}
+.modal-overlay{position:fixed;inset:0;background:rgba(15,28,46,.75);backdrop-filter:blur(12px);z-index:100;display:flex;align-items:flex-start;justify-content:center;padding:env(safe-area-inset-top, 20px) 1.25rem 1.25rem;overflow-y:auto;padding-top:clamp(20px, 8vh, 80px);}
 .modal{background:#FFFBF7;border:1px solid #D4C4B0;border-radius:20px;padding:2rem 1.5rem;width:100%;max-width:380px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.15);}
 .modal-ball{font-size:3rem;margin-bottom:1rem;}
 .modal-title{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:.04em;margin-bottom:.4rem;color:#2D2318;}
@@ -37,10 +56,10 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 .modal-input::placeholder{color:#A89880;}
 .btn-primary{width:100%;background:#00A859;color:#FFFFFF;border:none;border-radius:var(--radius-sm);padding:13px;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;}
 .btn-primary:hover{background:#007A40;}
-.tabs-wrap{position:sticky;top:0;z-index:10;background:#FFFBF7;border-bottom:1px solid var(--border);padding:0 1rem;display:flex;overflow-x:auto;box-shadow:var(--shadow);}
+.tabs-wrap{position:sticky;top:0;z-index:10;background:#FFFBF7;border-bottom:1px solid var(--border);padding:0 1rem;display:flex;overflow-x:auto;box-shadow:var(--shadow);padding-top:env(safe-area-inset-top,0);}
 .tab-btn{flex-shrink:0;padding:14px 14px;font-size:12px;font-weight:500;color:#A89880;background:transparent;border:none;border-bottom:2px solid transparent;cursor:pointer;letter-spacing:.04em;transition:all .15s;font-family:'DM Sans',sans-serif;}
 .tab-btn.active{color:var(--green);border-bottom-color:var(--green);font-weight:600;}
-.section{display:none;padding:1.25rem;}
+.section{display:none;padding:1.25rem;padding-bottom:calc(1.25rem + env(safe-area-inset-bottom, 0px));}
 .section.active{display:block;}
 .sec-hdr{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:.06em;color:#4A3525;margin-bottom:1rem;}
 .lb-row{display:flex;align-items:center;gap:12px;padding:12px 14px;background:#FFFBF7;border:1px solid var(--border);border-radius:var(--radius);margin-bottom:8px;box-shadow:var(--shadow);}
@@ -585,6 +604,16 @@ async function initJoin(){
   players = await api('GET','players?order=created_at.asc&select=id,name,password,is_admin,created_at') || [];
   document.getElementById('join-name').addEventListener('keydown', e => { if(e.key==='Enter') checkName(); });
   document.getElementById('join-pass').addEventListener('keydown', e => { if(e.key==='Enter') joinGame(); });
+
+  // iOS: klavye açılınca modal'ı görünür tut
+  const inputs = document.querySelectorAll('.modal-input');
+  inputs.forEach(inp => {
+    inp.addEventListener('focus', () => {
+      setTimeout(() => {
+        inp.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 300);
+    });
+  });
 }
 
 function initials(n){ return n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2); }
@@ -1462,6 +1491,23 @@ function showTab(id,btn){
   if(id==='bracket')renderBracket();
 }
 
+// Service Worker (PWA offline support)
+if('serviceWorker' in navigator){
+  const swCode = `
+    self.addEventListener('install', e => self.skipWaiting());
+    self.addEventListener('activate', e => e.waitUntil(clients.claim()));
+    self.addEventListener('fetch', e => {
+      if(e.request.method !== 'GET') return;
+      e.respondWith(
+        fetch(e.request).catch(() => caches.match(e.request))
+      );
+    });
+  `;
+  const blob = new Blob([swCode], {type:'application/javascript'});
+  const swUrl = URL.createObjectURL(blob);
+  navigator.serviceWorker.register(swUrl).catch(()=>{});
+}
+
 buildMatches();
 initJoin();
 
@@ -1470,23 +1516,39 @@ let _savedScroll = 0;
 let _scrollLocked = false;
 let _scrollTimer = null;
 
+// iOS klavye yüksekliği takibi
+let _keyboardHeight = 0;
+if(window.visualViewport){
+  window.visualViewport.addEventListener('resize', () => {
+    const newHeight = window.innerHeight - window.visualViewport.height;
+    _keyboardHeight = newHeight > 50 ? newHeight : 0;
+  });
+}
+
 document.addEventListener('focusin', function(e){
   if(e.target.tagName==='INPUT'){
     _savedScroll = window.scrollY;
     _scrollLocked = true;
     clearTimeout(_scrollTimer);
+    // Modal dışındaki input'lar için scroll fix
+    if(!e.target.closest('.modal')){
+      setTimeout(() => {
+        e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        _savedScroll = window.scrollY;
+      }, 350);
+    }
   }
 });
 
 document.addEventListener('focusout', function(e){
   if(e.target.tagName==='INPUT'){
-    // Kısa bir süre daha kilitle (render sonrası scroll'a karşı)
-    _scrollTimer = setTimeout(()=>{ _scrollLocked = false; }, 500);
+    _scrollTimer = setTimeout(()=>{ _scrollLocked = false; }, 300);
   }
 });
 
+// Desktop'ta scroll kilidi (bracket input'ları için)
 window.addEventListener('scroll', function(){
-  if(_scrollLocked){
+  if(_scrollLocked && _keyboardHeight === 0){
     window.scrollTo({top:_savedScroll,behavior:'instant'});
   }
 }, {passive:false});
