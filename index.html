@@ -225,7 +225,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
     <div class="hero-sub">11 Haziran – 19 Temmuz 2026</div>
     <div class="hero-stats">
       <div class="hero-stat"><div class="hero-stat-val" id="stat-players">0</div><div class="hero-stat-label">Oyuncu</div></div>
-      <div class="hero-stat"><div class="hero-stat-val">72</div><div class="hero-stat-label">Maç</div></div>
+      <div class="hero-stat"><div class="hero-stat-val" id="stat-predictions">0</div><div class="hero-stat-label">Tahminim</div></div>
       <div class="hero-stat"><div class="hero-stat-val" id="stat-mypts">0</div><div class="hero-stat-label">Puanın</div></div>
     </div>
     <div id="admin-badge-wrap"></div>
@@ -454,11 +454,26 @@ async function loadAll(){
   realScores={};
   (sc||[]).forEach(s=>{realScores[s.match_id]={h:s.real_h,a:s.real_a};});
   knockoutData={};
-  (km||[]).forEach(m=>{knockoutData[m.id]=m;});
+  (km||[]).forEach(m=>{
+    knockoutData[+m.id]={
+      ...m,
+      id: +m.id,
+      real_h: m.real_h!==null&&m.real_h!==undefined ? +m.real_h : null,
+      real_a: m.real_a!==null&&m.real_a!==undefined ? +m.real_a : null,
+      et_home: m.et_home!==null&&m.et_home!==undefined ? +m.et_home : null,
+      et_away: m.et_away!==null&&m.et_away!==undefined ? +m.et_away : null,
+    };
+  });
   koPreds={};
   (kp||[]).forEach(p=>{
-    if(!koPreds[p.match_id])koPreds[p.match_id]={};
-    koPreds[p.match_id][p.player_id]={h:p.pred_h,a:p.pred_a,et:p.pred_et_winner,pen:p.pred_pen_winner};
+    const mid = +p.match_id; // integer'a çevir
+    if(!koPreds[mid])koPreds[mid]={};
+    koPreds[mid][p.player_id]={
+      h: p.pred_h!==null&&p.pred_h!==undefined ? +p.pred_h : null,
+      a: p.pred_a!==null&&p.pred_a!==undefined ? +p.pred_a : null,
+      et: p.pred_et_winner||null,
+      pen: p.pred_pen_winner||null
+    };
   });
   updateStats();
 }
@@ -520,7 +535,18 @@ function totalPts(pid){
 function pColor(i){return COLORS[i%COLORS.length];}
 function updateStats(){
   document.getElementById('stat-players').textContent=players.length;
-  if(ME)document.getElementById('stat-mypts').textContent=totalPts(ME.id);
+  if(ME){
+    document.getElementById('stat-mypts').textContent=totalPts(ME.id);
+    // Kullanıcının tahmin girdiği maç sayısı (grup + knockout)
+    const groupPreds = matches.filter(m=>preds[m.id]?.[ME.id]&&
+      preds[m.id][ME.id].h!==null&&preds[m.id][ME.id].a!==null).length;
+    let koPredCount = 0;
+    for(let slot=1;slot<=32;slot++){
+      if(koPreds[slot]?.[ME.id]?.h!==null&&koPreds[slot]?.[ME.id]?.h!==undefined) koPredCount++;
+    }
+    const el = document.getElementById('stat-predictions');
+    if(el) el.textContent = groupPreds + koPredCount;
+  }
 }
 
 // ── GROUP STANDINGS CALC ──
@@ -661,8 +687,20 @@ function renderLeaderboard(){
   const sorted=players.map((p,i)=>({...p,pts:totalPts(p.id),ci:i})).sort((a,b)=>b.pts-a.pts);
   el.innerHTML=sorted.map((p,i)=>{
     const[col,bg]=pColor(p.ci);
-    const played=matches.filter(m=>finished(m.id)&&preds[m.id]?.[p.id]).length;
-    const correct=matches.filter(m=>(calcPts(m.id,p.id)||0)>0).length;
+    // Grup maçları
+    const playedGroup=matches.filter(m=>finished(m.id)&&preds[m.id]?.[p.id]).length;
+    const correctGroup=matches.filter(m=>(calcPts(m.id,p.id)||0)>0).length;
+    // Knockout maçları
+    let playedKO=0, correctKO=0;
+    for(let slot=1;slot<=32;slot++){
+      const km=knockoutData[slot];
+      if(km&&km.real_h!==null&&km.real_h!==undefined&&koPreds[slot]?.[p.id]){
+        playedKO++;
+        if((calcKnockoutPts(slot,p.id)||0)>0) correctKO++;
+      }
+    }
+    const played=playedGroup+playedKO;
+    const correct=correctGroup+correctKO;
     const isMe=p.id===ME?.id,rc=i===0?'r1':i===1?'r2':i===2?'r3':'';
     return`<div class="lb-row ${isMe?'me':''}">
       <div class="lb-rank ${rc}">${i+1}</div>
@@ -1161,8 +1199,9 @@ function saveKoPred(slot, pid, field, value){
       headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=minimal'},
       body:JSON.stringify({
         id: 'kp_'+slot+'_'+pid,
-        player_id: pid, match_id: slot,
-        pred_h: p.h, pred_a: p.a,
+        player_id: pid, match_id: +slot,
+        pred_h: p.h!==null?+p.h:null,
+        pred_a: p.a!==null?+p.a:null,
         pred_et_winner: p.et||null,
         pred_pen_winner: p.pen||null
       })
