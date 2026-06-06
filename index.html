@@ -1215,35 +1215,56 @@ function bkMatchCard(id,round,homeTeam,awayTeam,km,dateLabel,label){
   </div>`;
 }
 
+// R32 slot'u için ev/deplasman takımını döndür (isim Supabase'de yoksa gruptan bul)
+function getKOTeam(matchId, side){
+  const km=knockoutData[matchId];
+  if(!km) return null;
+  const nameKey=side==='H'?'home_name':'away_name';
+  const flagKey=side==='H'?'home_flag':'away_flag';
+  // İsim kayıtlıysa direkt dön
+  if(km[nameKey]) return {f:km[flagKey]||'🏳️',n:km[nameKey]};
+  // R32 (slot 1-16) için gruptan hesapla
+  if(matchId>=1&&matchId<=16){
+    const s=R32_SLOTS[matchId-1];
+    if(!s) return null;
+    const [_slot,hType,hGroup,aType,aGroup]=s;
+    const type=side==='H'?hType:aType;
+    const group=side==='H'?hGroup:aGroup;
+    if(type==='1') return getGroupTeam(group,1);
+    if(type==='2') return getGroupTeam(group,2);
+    if(type==='3rd') return get3rdPlaceForSlot(side==='H'?hGroup:aGroup);
+  }
+  return null;
+}
+
 function getKnockoutWinner(matchId){
   const km=knockoutData[matchId];
   if(!km||km.real_h===null||km.real_h===undefined) return null;
-  // 90 dk
-  if(km.real_h>km.real_a) return km.home_name?{f:km.home_flag||'🏳️',n:km.home_name}:null;
-  if(km.real_a>km.real_h) return km.away_name?{f:km.away_flag||'🏳️',n:km.away_name}:null;
-  // Beraberlik → uzatma
-  if(km.et_home!==null&&km.et_home!==undefined){
-    if(km.et_home>km.et_away) return km.home_name?{f:km.home_flag||'🏳️',n:km.home_name}:null;
-    if(km.et_away>km.et_home) return km.away_name?{f:km.away_flag||'🏳️',n:km.away_name}:null;
-    // Penaltı
-    if(km.pen_winner==='H') return km.home_name?{f:km.home_flag||'🏳️',n:km.home_name}:null;
-    if(km.pen_winner==='A') return km.away_name?{f:km.away_flag||'🏳️',n:km.away_name}:null;
+  let winner=null;
+  if(km.real_h>km.real_a) winner='H';
+  else if(km.real_a>km.real_h) winner='A';
+  else if(km.et_home!==null&&km.et_home!==undefined){
+    if(km.et_home>km.et_away) winner='H';
+    else if(km.et_away>km.et_home) winner='A';
+    else if(km.pen_winner) winner=km.pen_winner;
   }
-  return null;
+  if(!winner) return null;
+  return getKOTeam(matchId, winner);
 }
 
 function getKnockoutLoser(matchId){
   const km=knockoutData[matchId];
   if(!km||km.real_h===null||km.real_h===undefined) return null;
-  if(km.real_h>km.real_a) return km.away_name?{f:km.away_flag||'🏳️',n:km.away_name}:null;
-  if(km.real_a>km.real_h) return km.home_name?{f:km.home_flag||'🏳️',n:km.home_name}:null;
-  if(km.et_home!==null&&km.et_home!==undefined){
-    if(km.et_home>km.et_away) return km.away_name?{f:km.away_flag||'🏳️',n:km.away_name}:null;
-    if(km.et_away>km.et_home) return km.home_name?{f:km.home_flag||'🏳️',n:km.home_name}:null;
-    if(km.pen_winner==='H') return km.away_name?{f:km.away_flag||'🏳️',n:km.away_name}:null;
-    if(km.pen_winner==='A') return km.home_name?{f:km.home_flag||'🏳️',n:km.home_name}:null;
+  let loser=null;
+  if(km.real_h>km.real_a) loser='A';
+  else if(km.real_a>km.real_h) loser='H';
+  else if(km.et_home!==null&&km.et_home!==undefined){
+    if(km.et_home>km.et_away) loser='A';
+    else if(km.et_away>km.et_home) loser='H';
+    else if(km.pen_winner) loser=km.pen_winner==='H'?'A':'H';
   }
-  return null;
+  if(!loser) return null;
+  return getKOTeam(matchId, loser);
 }
 
 // ── SAVE REAL ──
