@@ -1215,15 +1215,16 @@ function bkMatchCard(id,round,homeTeam,awayTeam,km,dateLabel,label){
   </div>`;
 }
 
-// R32 slot'u için ev/deplasman takımını döndür (isim Supabase'de yoksa gruptan bul)
+// Bir knockout maçının ev/deplasman takımını özyinelemeli bul
 function getKOTeam(matchId, side){
   const km=knockoutData[matchId];
-  if(!km) return null;
   const nameKey=side==='H'?'home_name':'away_name';
   const flagKey=side==='H'?'home_flag':'away_flag';
-  // İsim kayıtlıysa direkt dön
-  if(km[nameKey]) return {f:km[flagKey]||'🏳️',n:km[nameKey]};
-  // R32 (slot 1-16) için gruptan hesapla
+
+  // İsim Supabase'de kayıtlıysa direkt dön
+  if(km&&km[nameKey]) return {f:km[flagKey]||'🏳️',n:km[nameKey]};
+
+  // R32 (slot 1-16): gruptan hesapla
   if(matchId>=1&&matchId<=16){
     const s=R32_SLOTS[matchId-1];
     if(!s) return null;
@@ -1233,7 +1234,40 @@ function getKOTeam(matchId, side){
     if(type==='1') return getGroupTeam(group,1);
     if(type==='2') return getGroupTeam(group,2);
     if(type==='3rd') return get3rdPlaceForSlot(side==='H'?hGroup:aGroup);
+    return null;
   }
+
+  // R16 (slot 17-24): önceki R32 kazananından gel
+  if(matchId>=17&&matchId<=24){
+    const i=matchId-17;
+    const prevH=2*i+1, prevA=2*i+2; // R32 slot çifti
+    return side==='H'?getKnockoutWinner(prevH):getKnockoutWinner(prevA);
+  }
+
+  // QF (slot 25-28): önceki R16 kazananından gel
+  if(matchId>=25&&matchId<=28){
+    const i=matchId-25;
+    const prevH=17+2*i, prevA=18+2*i;
+    return side==='H'?getKnockoutWinner(prevH):getKnockoutWinner(prevA);
+  }
+
+  // SF (slot 29-30): önceki QF kazananından gel
+  if(matchId>=29&&matchId<=30){
+    const i=matchId-29;
+    const prevH=25+2*i, prevA=26+2*i;
+    return side==='H'?getKnockoutWinner(prevH):getKnockoutWinner(prevA);
+  }
+
+  // 3.lük (slot 31): SF kaybedenler
+  if(matchId===31){
+    return side==='H'?getKnockoutLoser(29):getKnockoutLoser(30);
+  }
+
+  // Final (slot 32): SF kazananlar
+  if(matchId===32){
+    return side==='H'?getKnockoutWinner(29):getKnockoutWinner(30);
+  }
+
   return null;
 }
 
@@ -1264,7 +1298,12 @@ function getKnockoutLoser(matchId){
     else if(km.pen_winner) loser=km.pen_winner==='H'?'A':'H';
   }
   if(!loser) return null;
-  return getKOTeam(matchId, loser);
+  // loser'ın karşısı winner
+  const winnerSide = loser==='H'?'A':'H';
+  const winner = getKnockoutWinner(matchId);
+  // Loser = diğer takım
+  const loserSide = loser;
+  return getKOTeam(matchId, loserSide);
 }
 
 // ── SAVE REAL ──
