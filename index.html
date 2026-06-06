@@ -622,18 +622,19 @@ function getBest8ThirdPlace(){
     const done=grpMatches.filter(m=>m.round===3).every(m=>finished(m.id));
     if(done&&st.length>=3){
       const t=st[2];
-      thirds.push({gid, team:t});
+      const pts=(t.w||0)*3+(t.d||0); // puan hesapla
+      thirds.push({gid, team:{...t, pts}});
     }
   });
   if(thirds.length<12)return null; // tüm gruplar bitmedi
 
-  // Sıralama: puan > gol farkı > atılan gol > fair play (basit: tüm eşit)
+  // Sıralama: puan > gol farkı > atılan gol
   thirds.sort((a,b)=>{
     const ta=a.team, tb=b.team;
-    if(tb.pts!==ta.pts)return tb.pts-ta.pts;
+    if(tb.pts!==ta.pts) return tb.pts-ta.pts;
     const gdA=(ta.gf-ta.ga), gdB=(tb.gf-tb.ga);
-    if(gdB!==gdA)return gdB-gdA;
-    if(tb.gf!==ta.gf)return tb.gf-ta.gf;
+    if(gdB!==gdA) return gdB-gdA;
+    if(tb.gf!==ta.gf) return tb.gf-ta.gf;
     return 0;
   });
   return thirds.slice(0,8);
