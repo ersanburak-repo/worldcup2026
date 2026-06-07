@@ -329,8 +329,10 @@ input, textarea {
   <div class="hero">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.25rem">
       <div class="hero-eyebrow" style="margin-bottom:0">FIFA Dünya Kupası · ABD / Kanada / Meksika</div>
-      <button id="logout-btn" onclick="logout()" style="display:none;background:transparent;border:1px solid var(--border2);color:var(--text3);font-size:11px;padding:4px 10px;border-radius:99px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s" onmouseover="this.style.borderColor='var(--text2)';this.style.color='var(--text)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text3)'">Çıkış ↩</button>
-      <button id="guide-btn" onclick="showGuide()" style="display:none;background:transparent;border:1px solid var(--border2);color:var(--text3);font-size:11px;padding:4px 10px;border-radius:99px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;margin-left:6px" onmouseover="this.style.borderColor='var(--text2)';this.style.color='var(--text)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text3)'">? Kılavuz</button>
+      <div style="display:flex;align-items:center;gap:6px">
+        <button id="guide-btn" onclick="showGuide()" style="display:none;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.75);font-size:11px;padding:4px 10px;border-radius:99px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s" onmouseover="this.style.background='rgba(255,255,255,.18)';this.style.color='#fff'" onmouseout="this.style.background='rgba(255,255,255,.1)';this.style.color='rgba(255,255,255,.75)'">? Kılavuz</button>
+        <button id="logout-btn" onclick="logout()" style="display:none;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.75);font-size:11px;padding:4px 10px;border-radius:99px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s" onmouseover="this.style.background='rgba(255,255,255,.18)';this.style.color='#fff'" onmouseout="this.style.background='rgba(255,255,255,.1)';this.style.color='rgba(255,255,255,.75)'">Çıkış ↩</button>
+      </div>
     </div>
     <div class="hero-title">TAHMİN<br><span>YARIŞMASI</span></div>
     <div class="hero-sub">11 Haziran – 19 Temmuz 2026</div>
@@ -791,17 +793,34 @@ async function checkName(){
   document.getElementById('pass-name-label').textContent = name;
 
   if(ex){
-    // Kayıtlı kullanıcı
+    // Kayıtlı kullanıcı - şifresini bilen mi, yoksa isim çakışması mı?
     _joinExistingUser = ex;
-    document.getElementById('pass-sub').innerHTML = `Hoş geldin <strong>${ex.name}</strong>!<br>Şifreni girerek devam et`;
+    document.getElementById('pass-sub').innerHTML = `
+      <strong>${ex.name}</strong> adıyla kayıtlı bir hesap var.<br>
+      <span style="color:#7A6050">Senin hesabınsa şifreni gir.</span>`;
     document.getElementById('pass-btn').textContent = 'Giriş Yap →';
     document.getElementById('join-pass').placeholder = 'Şifreni gir...';
+    // Farklı isim kullan seçeneği
+    let diffEl = document.getElementById('diff-name-hint');
+    if(!diffEl){
+      diffEl = document.createElement('div');
+      diffEl.id = 'diff-name-hint';
+      diffEl.style.cssText = 'margin-top:8px;padding:8px 10px;background:#FEF9EC;border:1px solid #FDE68A;border-radius:8px;font-size:11px;color:#92400E;';
+      diffEl.innerHTML = `Bu senin hesabın değilse farklı bir isim dene.<br>
+        <button onclick="backToName()" style="margin-top:6px;background:transparent;border:1px solid #D97706;color:#92400E;font-size:11px;padding:3px 10px;border-radius:99px;cursor:pointer;font-family:'DM Sans',sans-serif">
+          ← Farklı isim dene
+        </button>`;
+      document.getElementById('join-pass').after(diffEl);
+    }
+    diffEl.style.display='block';
   } else {
     // Yeni kullanıcı
     _joinExistingUser = null;
     document.getElementById('pass-sub').innerHTML = `Merhaba <strong>${name}</strong>!<br>Sana bir şifre oluştur (6 rakam)`;
     document.getElementById('pass-btn').textContent = 'Kayıt Ol →';
     document.getElementById('join-pass').placeholder = '6 haneli şifre oluştur...';
+    const diffEl = document.getElementById('diff-name-hint');
+    if(diffEl) diffEl.style.display='none';
   }
 
   // Adım 2'ye geç
