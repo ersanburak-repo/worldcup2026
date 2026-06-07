@@ -49,6 +49,30 @@ input, textarea {
 .modal-overlay{position:fixed;inset:0;background:rgba(15,28,46,.75);backdrop-filter:blur(12px);z-index:100;display:flex;align-items:flex-start;justify-content:center;padding:env(safe-area-inset-top, 20px) 1.25rem 1.25rem;overflow-y:auto;padding-top:clamp(20px, 8vh, 80px);}
 .modal{background:#FFFBF7;border:1px solid #D4C4B0;border-radius:20px;padding:2rem 1.5rem;width:100%;max-width:380px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.15);}
 .modal-ball{font-size:3rem;margin-bottom:1rem;}
+.guide-overlay{position:fixed;inset:0;background:rgba(15,28,46,.8);backdrop-filter:blur(8px);z-index:101;display:none;align-items:center;justify-content:center;padding:1rem;}
+.guide-overlay.show{display:flex;}
+.guide-modal{background:#FFFBF7;border-radius:20px;width:100%;max-width:380px;overflow:hidden;max-height:90vh;overflow-y:auto;}
+.guide-head{background:linear-gradient(160deg,#0F1C2E,#162440);padding:20px 20px 16px;text-align:center;}
+.guide-eye{font-size:9px;color:#4ADE80;letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px;}
+.guide-title{font-size:20px;font-weight:700;color:#fff;margin-bottom:2px;}
+.guide-sub{font-size:11px;color:rgba(255,255,255,.5);}
+.guide-body{padding:16px;}
+.g-step{display:flex;gap:12px;align-items:flex-start;margin-bottom:14px;}
+.g-num{width:28px;height:28px;border-radius:50%;background:#0F1C2E;color:#4ADE80;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.g-title{font-size:13px;font-weight:600;color:#2D2318;margin-bottom:2px;}
+.g-desc{font-size:11px;color:#7A6050;line-height:1.5;}
+.g-desc b{color:#2D2318;font-weight:600;}
+.g-pts-row{display:flex;gap:6px;margin-bottom:5px;align-items:center;}
+.g-pts{font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;}
+.g-pts-5{background:#D1FAE5;color:#065F46;}
+.g-pts-3{background:#FEF3C7;color:#92400E;}
+.g-pts-0{background:#F1F5F9;color:#64748B;}
+.g-pts-label{font-size:11px;color:#7A6050;}
+.g-tip{background:#F0FDF8;border:1px solid #BBF7D0;border-radius:8px;padding:10px 12px;margin-bottom:14px;}
+.g-tip-title{font-size:11px;font-weight:600;color:#065F46;margin-bottom:3px;}
+.g-tip-text{font-size:11px;color:#047857;line-height:1.5;}
+.guide-foot{padding:0 16px 16px;}
+.btn-guide-ok{width:100%;padding:12px;background:#00A859;border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;}
 .modal-title{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:.04em;margin-bottom:.4rem;color:#2D2318;}
 .modal-sub{font-size:13px;color:#7A6050;margin-bottom:1.5rem;}
 .modal-input{width:100%;background:#FFFBF7;border:1.5px solid #D4C4B0;border-radius:var(--radius-sm);padding:12px 14px;font-size:15px;color:var(--text);font-family:'DM Sans',sans-serif;margin-bottom:.75rem;text-align:center;}
@@ -220,6 +244,59 @@ input, textarea {
 </head>
 <body>
 
+<div id="guide-overlay" class="guide-overlay">
+  <div class="guide-modal">
+    <div class="guide-head">
+      <div class="guide-eye">Hoş geldin!</div>
+      <div class="guide-title">⚽ Nasıl Oynanır?</div>
+      <div class="guide-sub">Yarışmaya katılmadan önce 2 dakika oku</div>
+    </div>
+    <div class="guide-body">
+      <div class="g-step">
+        <div class="g-num">1</div>
+        <div>
+          <div class="g-title">Maçlara tahmin gir</div>
+          <div class="g-desc"><b>Maçlar</b> sekmesinden her maç için skor tahminini gir. Maç başlamadan <b>15 dakika önce</b> tahmin kapanır.</div>
+        </div>
+      </div>
+      <div class="g-step">
+        <div class="g-num">2</div>
+        <div>
+          <div class="g-title">Eleme turlarını da tahmin et</div>
+          <div class="g-desc"><b>Çizelge</b> sekmesinde Round of 32'den finale kadar tüm maçlara tahmin girebilirsin. Beraberlik tahmin edersen <b>uzatma ve penaltı</b> kazananını da seçebilirsin.</div>
+        </div>
+      </div>
+      <div class="g-step">
+        <div class="g-num">3</div>
+        <div>
+          <div class="g-title">Puan kazan</div>
+          <div class="g-desc">Tahminlerin tutunca puan kazanırsın:</div>
+        </div>
+      </div>
+      <div style="margin-left:40px;margin-bottom:12px">
+        <div class="g-pts-row"><span class="g-pts g-pts-5">+5p</span><span class="g-pts-label">Doğru skor (örn. 2-1 tahmin, 2-1 bitti)</span></div>
+        <div class="g-pts-row"><span class="g-pts g-pts-3">+3p</span><span class="g-pts-label">Doğru sonuç (galibiyet/beraberlik)</span></div>
+        <div class="g-pts-row"><span class="g-pts g-pts-3">+3p</span><span class="g-pts-label">ET/penaltı kazananı doğru</span></div>
+        <div class="g-pts-row"><span class="g-pts g-pts-0">0p</span><span class="g-pts-label">Yanlış tahmin</span></div>
+      </div>
+      <div class="g-tip">
+        <div class="g-tip-title">💡 İpucu</div>
+        <div class="g-tip-text">Turnuva başlamadan önce mümkün olduğunca çok tahmin gir — maç başlayınca değiştiremezsin!</div>
+      </div>
+      <div class="g-step">
+        <div class="g-num">4</div>
+        <div>
+          <div class="g-title">Sıralamayı takip et</div>
+          <div class="g-desc"><b>Sıralama</b> sekmesinde anlık puanları ve rakiplerini görebilirsin.</div>
+        </div>
+      </div>
+    </div>
+    <div class="guide-foot">
+      <button class="btn-guide-ok" onclick="closeGuide()">Anladım, oynamaya başla! →</button>
+    </div>
+  </div>
+</div>
+
 <div id="join-modal" class="modal-overlay">
   <div class="modal">
     <div class="modal-ball">⚽</div>
@@ -253,6 +330,7 @@ input, textarea {
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.25rem">
       <div class="hero-eyebrow" style="margin-bottom:0">FIFA Dünya Kupası · ABD / Kanada / Meksika</div>
       <button id="logout-btn" onclick="logout()" style="display:none;background:transparent;border:1px solid var(--border2);color:var(--text3);font-size:11px;padding:4px 10px;border-radius:99px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s" onmouseover="this.style.borderColor='var(--text2)';this.style.color='var(--text)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text3)'">Çıkış ↩</button>
+      <button id="guide-btn" onclick="showGuide()" style="display:none;background:transparent;border:1px solid var(--border2);color:var(--text3);font-size:11px;padding:4px 10px;border-radius:99px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;margin-left:6px" onmouseover="this.style.borderColor='var(--text2)';this.style.color='var(--text)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text3)'">? Kılavuz</button>
     </div>
     <div class="hero-title">TAHMİN<br><span>YARIŞMASI</span></div>
     <div class="hero-sub">11 Haziran – 19 Temmuz 2026</div>
@@ -764,9 +842,16 @@ async function joinGame(){
     const id = 'p_' + Date.now();
     await api('POST','players',{id, name, password:pass, is_admin:false});
     ME = {id, name, password:pass, is_admin:false};
+    setJoinError('');
+    startApp();
+    // Yeni kayıt - kılavuzu göster
+    setTimeout(()=>showGuide(), 400);
+    return;
   }
   setJoinError('');
   startApp();
+  // Mevcut kullanıcı - kılavuzu daha önce görmemişse göster
+  if(!localStorage.getItem('guide_seen_v1')) setTimeout(()=>showGuide(), 400);
 }
 async function startApp(){
   IS_ADMIN=ME.is_admin===true;
@@ -1554,6 +1639,14 @@ async function adminDeletePlayer(pid,encodedName){
   showToast(name+' silindi');
 }
 
+function showGuide(){
+  document.getElementById('guide-overlay').classList.add('show');
+}
+function closeGuide(){
+  document.getElementById('guide-overlay').classList.remove('show');
+  localStorage.setItem('guide_seen_v1','1');
+}
+
 function logout(){
   ME=null; IS_ADMIN=false; _joinExistingUser=null;
   if(window._warnInterval){ clearInterval(window._warnInterval); window._warnInterval=null; }
@@ -1567,6 +1660,7 @@ function logout(){
   document.getElementById('join-error').textContent='';
   document.getElementById('join-pass-error').textContent='';
   document.getElementById('logout-btn').style.display='none';
+  document.getElementById('guide-btn').style.display='none';
   document.getElementById('admin-badge-wrap').innerHTML='';
   document.getElementById('admin-tab').style.display='none';
 }
