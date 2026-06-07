@@ -349,7 +349,6 @@ input, textarea {
   </div>
 
   <div class="section active" id="tab-leaderboard">
-    <div class="sec-hdr">LİDER TABLOSU</div>
     <div id="lb-content"><div class="loading">Yükleniyor...</div></div>
   </div>
   <div class="section" id="tab-matches">
@@ -858,6 +857,7 @@ async function startApp(){
   document.getElementById('join-modal').style.display='none';
   document.getElementById('app').style.display='block';
   document.getElementById('logout-btn').style.display='block';
+  document.getElementById('guide-btn').style.display='block';
   if(IS_ADMIN){
     document.getElementById('admin-tab').style.display='flex';
     document.getElementById('admin-badge-wrap').innerHTML='<div class="admin-badge">⚙️ Admin modu · Burak</div>';
