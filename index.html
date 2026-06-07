@@ -12,6 +12,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%230F1C2E' rx='20'/><text y='.9em' font-size='80' x='10'>⚽</text></svg>">
 <link rel="manifest" href="data:application/json,{&quot;name&quot;:&quot;2026 Dünya Kupası Tahmin&quot;,&quot;short_name&quot;:&quot;WC2026&quot;,&quot;start_url&quot;:&quot;/&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;background_color&quot;:&quot;%23F7F3EE&quot;,&quot;theme_color&quot;:&quot;%230F1C2E&quot;,&quot;orientation&quot;:&quot;portrait&quot;}">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -302,25 +303,46 @@ input, textarea {
     <div class="modal-ball">⚽</div>
     <div class="modal-title">2026 DÜNYA KUPASI</div>
 
-    <!-- ADIM 1: İsim -->
-    <div id="step-name">
-      <div class="modal-sub">Tahmin yarışmasına katılmak için<br>adını gir</div>
-      <input type="text" class="modal-input" id="join-name" placeholder="Adın..." maxlength="20" autocomplete="off" autocorrect="off" spellcheck="false" />
+    <!-- ADIM 1: Email + İsim (Kayıt) veya sadece Email (Giriş) -->
+    <div id="step-email">
+      <div class="modal-sub" id="email-sub">Tahmin yarışmasına katılmak için<br>email adresini gir</div>
+      <input type="email" class="modal-input" id="join-email" placeholder="Email adresin..." autocomplete="email" />
+      <div id="join-name-wrap" style="display:none">
+        <input type="text" class="modal-input" id="join-name" placeholder="Adın (görünen isim)..." maxlength="20" autocomplete="off" />
+      </div>
       <div id="join-error" style="font-size:12px;color:#C0392B;margin:-4px 0 8px;min-height:16px;text-align:center;"></div>
-      <button class="btn-primary" onclick="checkName()">Devam →</button>
+      <button class="btn-primary" id="email-btn" onclick="checkEmail()">Devam →</button>
     </div>
 
-    <!-- ADIM 2: Şifre (gizli başlar) -->
+    <!-- ADIM 2: Şifre -->
     <div id="step-pass" style="display:none">
       <div class="modal-sub" id="pass-sub"></div>
       <div id="pass-user-badge" style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:1rem;">
         <div id="pass-avatar" style="width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;background:#D1FAE5;color:#065F46;flex-shrink:0;"></div>
         <span id="pass-name-label" style="font-size:16px;font-weight:600;color:var(--text)"></span>
       </div>
-      <input type="password" class="modal-input" id="join-pass" placeholder="Şifreni gir..." maxlength="6" inputmode="numeric" pattern="[0-9]*" autocomplete="new-password" oninput="this.value=this.value.replace(/[^0-9]/g,'')" />
+      <input type="password" class="modal-input" id="join-pass" placeholder="Şifren..." autocomplete="current-password" />
       <div id="join-pass-error" style="font-size:12px;color:#C0392B;margin:-4px 0 8px;min-height:16px;text-align:center;"></div>
-      <button class="btn-primary" id="pass-btn" onclick="joinGame()">Giriş →</button>
-      <button onclick="backToName()" style="width:100%;margin-top:8px;background:transparent;border:none;color:var(--text3);font-size:12px;cursor:pointer;padding:6px;font-family:'DM Sans',sans-serif;">← Geri</button>
+      <button class="btn-primary" id="pass-btn" onclick="joinGame()">Giriş Yap →</button>
+      <button onclick="forgotPassword()" style="width:100%;margin-top:6px;background:transparent;border:none;color:#00A859;font-size:12px;cursor:pointer;padding:4px;font-family:'DM Sans',sans-serif;">Şifremi unuttum</button>
+      <button onclick="backToEmail()" style="width:100%;margin-top:2px;background:transparent;border:none;color:var(--text3);font-size:12px;cursor:pointer;padding:4px;font-family:'DM Sans',sans-serif;">← Geri</button>
+    </div>
+
+    <!-- ADIM 3: Şifre sıfırlama gönderildi -->
+    <div id="step-reset" style="display:none;text-align:center">
+      <div style="font-size:40px;margin-bottom:12px">📧</div>
+      <div class="modal-sub" style="font-size:14px;color:var(--text)">Şifre sıfırlama linki gönderildi!</div>
+      <div class="modal-sub" style="margin-top:6px">Email kutunu kontrol et ve<br>linke tıkla.</div>
+      <button onclick="backToEmail()" class="btn-primary" style="margin-top:16px">Tamam</button>
+    </div>
+
+    <!-- ADIM 4: Yeni şifre belirleme (reset linkten gelince) -->
+    <div id="step-new-pass" style="display:none;text-align:center">
+      <div class="modal-sub">Yeni şifreni belirle</div>
+      <input type="password" class="modal-input" id="new-pass-1" placeholder="Yeni şifre..." autocomplete="new-password" />
+      <input type="password" class="modal-input" id="new-pass-2" placeholder="Şifreyi tekrar gir..." autocomplete="new-password" />
+      <div id="new-pass-error" style="font-size:12px;color:#C0392B;margin:-4px 0 8px;min-height:16px;text-align:center;"></div>
+      <button class="btn-primary" onclick="updatePassword()">Şifreyi Güncelle →</button>
     </div>
   </div>
 </div>
@@ -378,6 +400,8 @@ input, textarea {
 <script>
 const SUPA_URL='https://qbbudqaalpqudvhrdtds.supabase.co';
 const SUPA_KEY='sb_publishable_WamUf0HgqPuzetk1w3NIUw_GrvVKx0N';
+const { createClient } = window.supabase;
+const supabaseClient = createClient(SUPA_URL, SUPA_KEY);
 const ADMIN_NAME='burak';
 
 const GROUPS=[
@@ -569,7 +593,7 @@ async function api(method,path,body){
 
 async function loadAll(){
   const [ps,pr,sc,km,kp]=await Promise.all([
-    api('GET','players?order=created_at.asc&select=id,name,password,is_admin,created_at'),
+    api('GET','players?order=created_at.asc&select=id,name,email,is_admin,auth_id,created_at'),
     api('GET','predictions?select=*'),
     api('GET','real_scores?select=*'),
     api('GET','knockout_matches?select=*&order=id.asc'),
@@ -758,121 +782,203 @@ function get3rdPlaceForSlot(winnerSlot){
   return t?t.team:null;
 }
 
-// ── JOIN ──
-let _joinExistingUser = null; // adım 1'de bulunan mevcut kullanıcı
+// ── JOIN (Supabase Auth) ──
+let _isNewUser = false;
+
+function initials(n){ return n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2); }
 
 async function initJoin(){
-  players = await api('GET','players?order=created_at.asc&select=id,name,password,is_admin,created_at') || [];
-  document.getElementById('join-name').addEventListener('keydown', e => { if(e.key==='Enter') checkName(); });
+  // Supabase session kontrolü - daha önce giriş yapmış mı?
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if(session){
+    await loadUserFromAuth(session.user);
+    return;
+  }
+
+  // Auth state dinle (şifre sıfırlama linki vs)
+  supabaseClient.auth.onAuthStateChange(async (event, session) => {
+    if(event === 'PASSWORD_RECOVERY'){
+      showStep('step-new-pass');
+    } else if(event === 'SIGNED_IN' && session){
+      await loadUserFromAuth(session.user);
+    }
+  });
+
+  document.getElementById('join-email').addEventListener('keydown', e => { if(e.key==='Enter') checkEmail(); });
   document.getElementById('join-pass').addEventListener('keydown', e => { if(e.key==='Enter') joinGame(); });
 
-  // iOS: klavye açılınca modal'ı görünür tut
   const inputs = document.querySelectorAll('.modal-input');
   inputs.forEach(inp => {
     inp.addEventListener('focus', () => {
-      setTimeout(() => {
-        inp.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 300);
+      setTimeout(() => inp.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300);
     });
   });
 }
 
-function initials(n){ return n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2); }
-
-async function checkName(){
-  const name = document.getElementById('join-name').value.trim();
-  if(!name){ document.getElementById('join-error').textContent='Lütfen adını gir.'; return; }
-  document.getElementById('join-error').textContent='';
-
-  // Güncel listeyi çek
-  players = await api('GET','players?order=created_at.asc&select=id,name,password,is_admin,created_at') || [];
-  const ex = players.find(p => p.name.toLowerCase() === name.toLowerCase());
-
-  // Avatar ve isim göster
-  document.getElementById('pass-avatar').textContent = initials(name);
-  document.getElementById('pass-name-label').textContent = name;
-
-  if(ex){
-    // Kayıtlı kullanıcı - şifresini bilen mi, yoksa isim çakışması mı?
-    _joinExistingUser = ex;
-    document.getElementById('pass-sub').innerHTML = `
-      <strong>${ex.name}</strong> adıyla kayıtlı bir hesap var.<br>
-      <span style="color:#7A6050">Senin hesabınsa şifreni gir.</span>`;
-    document.getElementById('pass-btn').textContent = 'Giriş Yap →';
-    document.getElementById('join-pass').placeholder = 'Şifreni gir...';
-    // Farklı isim kullan seçeneği
-    let diffEl = document.getElementById('diff-name-hint');
-    if(!diffEl){
-      diffEl = document.createElement('div');
-      diffEl.id = 'diff-name-hint';
-      diffEl.style.cssText = 'margin-top:8px;padding:8px 10px;background:#FEF9EC;border:1px solid #FDE68A;border-radius:8px;font-size:11px;color:#92400E;';
-      diffEl.innerHTML = `Bu senin hesabın değilse farklı bir isim dene.<br>
-        <button onclick="backToName()" style="margin-top:6px;background:transparent;border:1px solid #D97706;color:#92400E;font-size:11px;padding:3px 10px;border-radius:99px;cursor:pointer;font-family:'DM Sans',sans-serif">
-          ← Farklı isim dene
-        </button>`;
-      document.getElementById('join-pass').after(diffEl);
-    }
-    diffEl.style.display='block';
-  } else {
-    // Yeni kullanıcı
-    _joinExistingUser = null;
-    document.getElementById('pass-sub').innerHTML = `Merhaba <strong>${name}</strong>!<br>Sana bir şifre oluştur (6 rakam)`;
-    document.getElementById('pass-btn').textContent = 'Kayıt Ol →';
-    document.getElementById('join-pass').placeholder = '6 haneli şifre oluştur...';
-    const diffEl = document.getElementById('diff-name-hint');
-    if(diffEl) diffEl.style.display='none';
-  }
-
-  // Adım 2'ye geç
-  document.getElementById('step-name').style.display = 'none';
-  document.getElementById('step-pass').style.display = 'block';
-  document.getElementById('join-pass').value = '';
-  document.getElementById('join-pass-error').textContent = '';
-  setTimeout(() => document.getElementById('join-pass').focus(), 100);
+function showStep(id){
+  ['step-email','step-pass','step-reset','step-new-pass'].forEach(s=>{
+    document.getElementById(s).style.display = s===id?'block':'none';
+  });
 }
 
-function backToName(){
-  document.getElementById('step-pass').style.display = 'none';
-  document.getElementById('step-name').style.display = 'block';
-  _joinExistingUser = null;
+async function loadUserFromAuth(authUser){
+  // players tablosundan profili çek
+  players = await api('GET','players?order=created_at.asc&select=id,name,email,is_admin,auth_id,created_at') || [];
+  let player = players.find(p => p.auth_id === authUser.id);
+  if(!player){
+    // Auth var ama players kaydı yok - beklenmedik durum
+    await supabaseClient.auth.signOut();
+    return;
+  }
+  ME = player;
+  startApp();
+  if(!localStorage.getItem('guide_seen_v1')) setTimeout(()=>showGuide(), 400);
+}
+
+async function checkEmail(){
+  const email = document.getElementById('join-email').value.trim().toLowerCase();
+  if(!email || !email.includes('@')){ 
+    document.getElementById('join-error').textContent='Geçerli bir email gir.'; 
+    return; 
+  }
+  document.getElementById('join-error').textContent='';
+  document.getElementById('email-btn').textContent='Kontrol ediliyor...';
+  document.getElementById('email-btn').disabled=true;
+
+  // Bu email kayıtlı mı?
+  players = await api('GET','players?order=created_at.asc&select=id,name,email,is_admin,auth_id,created_at') || [];
+  const ex = players.find(p => p.email && p.email.toLowerCase() === email);
+
+  document.getElementById('email-btn').textContent='Devam →';
+  document.getElementById('email-btn').disabled=false;
+
+  if(ex){
+    // Kayıtlı kullanıcı - giriş
+    _isNewUser = false;
+    document.getElementById('pass-avatar').textContent = initials(ex.name);
+    document.getElementById('pass-name-label').textContent = ex.name;
+    document.getElementById('pass-sub').innerHTML = `Hoş geldin <strong>${ex.name}</strong>!<br><span style="color:var(--text2);font-size:12px">${email}</span>`;
+    document.getElementById('pass-btn').textContent = 'Giriş Yap →';
+    document.getElementById('join-pass').placeholder = 'Şifreni gir...';
+    document.getElementById('join-name-wrap').style.display = 'none';
+  } else {
+    // Yeni kullanıcı - kayıt
+    _isNewUser = true;
+    document.getElementById('pass-avatar').textContent = '?';
+    document.getElementById('pass-name-label').textContent = '';
+    document.getElementById('pass-sub').innerHTML = `Merhaba! Email adresi kayıtlı değil.<br>Kaydolmak için bilgilerini gir.`;
+    document.getElementById('pass-btn').textContent = 'Kayıt Ol →';
+    document.getElementById('join-pass').placeholder = 'Şifre oluştur (min 6 karakter)...';
+    document.getElementById('join-name-wrap').style.display = 'block';
+    document.getElementById('pass-avatar').textContent = '✨';
+  }
+
+  showStep('step-pass');
+  document.getElementById('join-pass').value = '';
   document.getElementById('join-pass-error').textContent = '';
-  setTimeout(() => document.getElementById('join-name').focus(), 100);
+  setTimeout(() => {
+    if(_isNewUser) document.getElementById('join-name').focus();
+    else document.getElementById('join-pass').focus();
+  }, 100);
+}
+
+function backToEmail(){
+  showStep('step-email');
+  document.getElementById('join-pass-error').textContent = '';
+  setTimeout(() => document.getElementById('join-email').focus(), 100);
 }
 
 function setJoinError(msg){ document.getElementById('join-pass-error').textContent = msg; }
 
+async function forgotPassword(){
+  const email = document.getElementById('join-email').value.trim().toLowerCase();
+  if(!email){ setJoinError('Email adresi bulunamadı.'); return; }
+  
+  const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.href
+  });
+  
+  if(error){ setJoinError('Hata: ' + error.message); return; }
+  showStep('step-reset');
+}
+
+async function updatePassword(){
+  const p1 = document.getElementById('new-pass-1').value;
+  const p2 = document.getElementById('new-pass-2').value;
+  const errEl = document.getElementById('new-pass-error');
+  
+  if(p1.length < 6){ errEl.textContent='Şifre en az 6 karakter olmalı.'; return; }
+  if(p1 !== p2){ errEl.textContent='Şifreler eşleşmiyor.'; return; }
+  errEl.textContent='';
+  
+  const { error } = await supabaseClient.auth.updateUser({ password: p1 });
+  if(error){ errEl.textContent='Hata: ' + error.message; return; }
+  
+  showToast('Şifre güncellendi! ✓');
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if(session) await loadUserFromAuth(session.user);
+}
+
 async function joinGame(){
-  const name = document.getElementById('join-name').value.trim();
-  const pass = document.getElementById('join-pass').value.trim();
+  const email = document.getElementById('join-email').value.trim().toLowerCase();
+  const pass = document.getElementById('join-pass').value;
   if(!pass){ setJoinError('Lütfen şifreni gir.'); return; }
 
-  if(_joinExistingUser){
-    // Giriş: şifre kontrolü
-    if(_joinExistingUser.password !== pass){
-      setJoinError('Şifre hatalı. Tekrar dene.');
-      document.getElementById('join-pass').value = '';
-      return;
+  document.getElementById('pass-btn').textContent = 'Lütfen bekle...';
+  document.getElementById('pass-btn').disabled = true;
+
+  if(_isNewUser){
+    const name = document.getElementById('join-name').value.trim();
+    if(!name){ 
+      setJoinError('Lütfen adını gir.'); 
+      document.getElementById('pass-btn').textContent='Kayıt Ol →';
+      document.getElementById('pass-btn').disabled=false;
+      return; 
     }
-    ME = _joinExistingUser;
-  } else {
-    // Kayıt: 6 hane zorunlu
-    if(!/^[0-9]{6}$/.test(pass)){ setJoinError('Şifre 6 haneli rakam olmalı.'); return; }
+    if(pass.length < 6){ 
+      setJoinError('Şifre en az 6 karakter olmalı.'); 
+      document.getElementById('pass-btn').textContent='Kayıt Ol →';
+      document.getElementById('pass-btn').disabled=false;
+      return; 
+    }
+    
+    // Supabase Auth'a kayıt
+    const { data, error } = await supabaseClient.auth.signUp({ email, password: pass });
+    if(error){ 
+      setJoinError('Kayıt hatası: ' + error.message);
+      document.getElementById('pass-btn').textContent='Kayıt Ol →';
+      document.getElementById('pass-btn').disabled=false;
+      return; 
+    }
+    
+    // Players tablosuna profil ekle
     const id = 'p_' + Date.now();
-    await api('POST','players',{id, name, password:pass, is_admin:false});
-    ME = {id, name, password:pass, is_admin:false};
-    setJoinError('');
+    await api('POST','players',{id, name, email, is_admin:false, auth_id: data.user.id});
+    ME = {id, name, email, is_admin:false, auth_id: data.user.id};
+    
+    document.getElementById('pass-btn').textContent='Kayıt Ol →';
+    document.getElementById('pass-btn').disabled=false;
     startApp();
-    // Yeni kayıt - kılavuzu göster
     setTimeout(()=>showGuide(), 400);
-    return;
+  } else {
+    // Giriş
+    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password: pass });
+    if(error){ 
+      setJoinError('Şifre hatalı. Tekrar dene.');
+      document.getElementById('join-pass').value='';
+      document.getElementById('pass-btn').textContent='Giriş Yap →';
+      document.getElementById('pass-btn').disabled=false;
+      return; 
+    }
+    
+    document.getElementById('pass-btn').textContent='Giriş Yap →';
+    document.getElementById('pass-btn').disabled=false;
+    await loadUserFromAuth(data.user);
+    if(!localStorage.getItem('guide_seen_v1')) setTimeout(()=>showGuide(), 400);
   }
-  setJoinError('');
-  startApp();
-  // Mevcut kullanıcı - kılavuzu daha önce görmemişse göster
-  if(!localStorage.getItem('guide_seen_v1')) setTimeout(()=>showGuide(), 400);
 }
 async function startApp(){
-  IS_ADMIN=ME.is_admin===true;
+  IS_ADMIN = ME && ME.is_admin===true;
   document.getElementById('join-modal').style.display='none';
   document.getElementById('app').style.display='block';
   document.getElementById('logout-btn').style.display='block';
@@ -1619,30 +1725,20 @@ function renderAdminPlayers(){
         <div class="lb-avatar" style="background:${bg};color:${col};flex-shrink:0">${initials(p.name)}</div>
         <div class="lb-info" style="min-width:80px"><div class="lb-name">${p.name}</div><div class="lb-detail">${totalPts(p.id)} puan</div></div>
         <div style="display:flex;align-items:center;gap:6px;margin-left:auto">
-          <input type="text" value="${p.password||''}" maxlength="6" inputmode="numeric"
-            oninput="this.value=this.value.replace(/[^0-9]/g,'')"
-            placeholder="Şifre"
-            style="width:90px;height:32px;text-align:center;font-size:14px;font-weight:500;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-family:'DM Sans',sans-serif;letter-spacing:.1em"
-            id="pass_${p.id}" />
-          <button onclick="adminUpdatePass('${p.id}')" style="height:32px;padding:0 10px;font-size:11px;font-weight:600;background:var(--green);color:#000;border:none;border-radius:var(--radius-sm);cursor:pointer">Kaydet</button>
+          <button onclick="adminUpdatePass('${p.id}')" style="height:32px;padding:0 12px;font-size:11px;font-weight:600;background:#00A859;color:#fff;border:none;border-radius:var(--radius-sm);cursor:pointer;font-family:'DM Sans',sans-serif">📧 Şifre Sıfırla</button>
           <button onclick="adminDeletePlayer('${p.id}','${encodeURIComponent(p.name)}')" style="height:32px;padding:0 10px;font-size:11px;font-weight:600;background:transparent;color:#FF6B6B;border:1px solid rgba(255,107,107,.3);border-radius:var(--radius-sm);cursor:pointer">Sil</button>
         </div>
       </div>`;
     }).join('');
 }
 
-async function adminUpdatePass(pid){
+ async function adminUpdatePass(pid){
   if(!IS_ADMIN){showToast('Yetkisiz işlem');return;}
-  const inp=document.getElementById('pass_'+pid);
-  const pass=inp.value.trim();
-  if(!/^[0-9]{6}$/.test(pass)){showToast('Şifre 6 haneli rakam olmalı');return;}
-  await fetch(SUPA_URL+'/rest/v1/players?id=eq.'+pid,{
-    method:'PATCH',
-    headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json'},
-    body:JSON.stringify({password:pass})
-  });
-  const p=players.find(x=>x.id===pid);if(p)p.password=pass;
-  showToast('Şifre güncellendi ✓');
+  const player=players.find(p=>p.id===pid);
+  if(!player||!player.email){showToast('Bu kullanıcının email adresi yok');return;}
+  const {error}=await supabaseClient.auth.resetPasswordForEmail(player.email,{redirectTo:window.location.href});
+  if(error){showToast('Hata: '+error.message);return;}
+  showToast('Şifre sıfırlama maili gönderildi ✓');
 }
 
 async function adminDeletePlayer(pid,encodedName){
@@ -1666,15 +1762,14 @@ function closeGuide(){
   localStorage.setItem('guide_seen_v1','1');
 }
 
-function logout(){
-  ME=null; IS_ADMIN=false; _joinExistingUser=null;
+async function logout(){
+  ME=null; IS_ADMIN=false; _isNewUser=false;
   if(window._warnInterval){ clearInterval(window._warnInterval); window._warnInterval=null; }
+  await supabaseClient.auth.signOut();
   document.getElementById('app').style.display='none';
   document.getElementById('join-modal').style.display='flex';
-  // Adım 1'e dön
-  document.getElementById('step-name').style.display='block';
-  document.getElementById('step-pass').style.display='none';
-  document.getElementById('join-name').value='';
+  showStep('step-email');
+  document.getElementById('join-email').value='';
   document.getElementById('join-pass').value='';
   document.getElementById('join-error').textContent='';
   document.getElementById('join-pass-error').textContent='';
