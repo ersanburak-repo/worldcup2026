@@ -382,6 +382,7 @@ input, textarea {
     <button class="tab-btn" onclick="showTab('matches',this)">⚽ Maçlar</button>
     <button class="tab-btn" onclick="showTab('bracket',this)">🗓️ Çizelge</button>
     <button class="tab-btn" id="admin-tab" style="display:none" onclick="showTab('admin',this)">⚙️ Admin</button>
+     <button id="voice-nav-btn" onclick="toggleVoiceNav()" title="Sesli arama" style="margin-left:auto;flex-shrink:0;background:transparent;border:none;font-size:18px;padding:8px 8px;cursor:pointer;opacity:.5;transition:all .2s">🎤</button>
   </div>
 
   <div class="section active" id="tab-leaderboard">
@@ -576,6 +577,55 @@ const COLORS=[
 let ME=null,IS_ADMIN=false;
 let players=[],preds={},realScores={},knockoutData={},koPreds={};
 let activeGroup='all',matches=[];
+
+// FIFA Nisan 2026 Sıralaması — Kaynak: FIFA Resmi Sıralama (Nisan 2026)
+const FIFA_POINTS = {
+  // Grup A
+  'Meksika':1681,'G. Afrika':1420,'G. Kore':1540,'Çekya':1490,
+  // Grup B
+  'Kanada':1550,'Bosna-Hersek':1565,'Katar':1490,'İsviçre':1649,
+  // Grup C
+  'Brezilya':1761,'Fas':1756,'Haiti':1250,'İskoçya':1520,
+  // Grup D
+  'ABD':1673,'Paraguay':1420,'Avustralya':1535,'Türkiye':1595,
+  // Grup E
+  'Almanya':1730,'Curaçao':1280,'F. Sahili':1410,'Ekvador':1555,
+  // Grup F
+  'Hollanda':1758,'Japonya':1660,'İsveç':1580,'Tunus':1500,
+  // Grup G
+  'Belçika':1735,'Mısır':1510,'İran':1520,'Y. Zelanda':1280,
+  // Grup H
+  'İspanya':1876,'Y.B. Adaları':1290,'S. Arabistan':1505,'Uruguay':1673,
+  // Grup I
+  'Fransa':1877,'Senegal':1689,'Irak':1370,'Norveç':1540,
+  // Grup J
+  'Arjantin':1875,'Cezayir':1390,'Avusturya':1600,'Ürdün':1380,
+  // Grup K
+  'Portekiz':1764,'DR Kongo':1360,'Özbekistan':1320,'Kolombiya':1693,
+  // Grup L
+  'İngiltere':1826,'Hırvatistan':1717,'Gana':1420,'Panama':1350,
+};
+
+// Elo tabanlı kazanma ihtimali
+function winProb(ptsA, ptsB) {
+  const diff = (ptsA - ptsB) / 400;
+  const expA = 1 / (1 + Math.pow(10, -diff));
+  const draw = 0.22;
+  const winA = expA * (1 - draw);
+  const winB = (1 - expA) * (1 - draw);
+  return {
+    h: Math.round(winA * 100),
+    d: Math.round(draw * 100),
+    a: Math.round(winB * 100)
+  };
+}
+
+function getMatchProbs(homeName, awayName) {
+  const hp = FIFA_POINTS[homeName];
+  const ap = FIFA_POINTS[awayName];
+  if(!hp || !ap) return null;
+  return winProb(hp, ap);
+}
 
 function buildMatches(){
   matches=[];let id=0;
@@ -2456,44 +2506,7 @@ const FIFA_R32_TABLE={
   'E,F,G,H,I,J,K,L':{'1A':'3E','1B':'3J','1D':'3I','1E':'3F','1G':'3H','1I':'3G','1K':'3L','1L':'3K'},
 };
 
-// FIFA Nisan 2026 Sıralaması — Kaynak: FIFA Resmi Sıralama (Nisan 2026)
-const FIFA_POINTS = {
-  'Fransa':1877,'İspanya':1876,'Arjantin':1875,'İngiltere':1826,
-  'Portekiz':1764,'Brezilya':1761,'Hollanda':1758,'Fas':1756,
-  'Belçika':1735,'Almanya':1730,'Hırvatistan':1717,'İtalya':1700,
-  'Kolombiya':1693,'Senegal':1689,'Meksika':1681,'ABD':1673,
-  'Uruguay':1673,'Japonya':1660,'İsviçre':1649,'Danimarka':1621,
-  'Avusturya':1600,'Türkiye':1595,'Bosna':1565,'Polonya':1560,
-  'Ekvador':1555,'Kanada':1550,'G.Kore':1540,'Avustralya':1535,
-  'İran':1520,'Mısır':1510,'S.Arabistan':1505,'Tunus':1500,
-  'Katar':1490,'Fas':1756,'G.Afrika':1450,'Norveç':1540,
-  'Ürdün':1380,'Irak':1370,'Cezayir':1390,'Gana':1420,
-  'Panama':1350,'Paraguay':1420,'Curaçao':1280,'F.Sahili':1410,
-  'Haiti':1250,'Y.Zelanda':1280,'DR Kongo':1360,'Özbekistan':1320,
-  'İskoçya':1520,'Y.B.Adaları':1290,'İsveç':1580,'Çekya':1490,
-};
 
-// Elo tabanlı kazanma ihtimali
-function winProb(ptsA, ptsB) {
-  const diff = (ptsA - ptsB) / 400;
-  const expA = 1 / (1 + Math.pow(10, -diff));
-  // Beraberlik payı: tipik futbolda ~%25-30
-  const draw = 0.22;
-  const winA = expA * (1 - draw);
-  const winB = (1 - expA) * (1 - draw);
-  return {
-    h: Math.round(winA * 100),
-    d: Math.round(draw * 100),
-    a: Math.round(winB * 100)
-  };
-}
-
-function getMatchProbs(homeName, awayName) {
-  const hp = FIFA_POINTS[homeName];
-  const ap = FIFA_POINTS[awayName];
-  if(!hp || !ap) return null;
-  return winProb(hp, ap);
-}
 
 // ── SESLİ NAVİGASYON ──
 let voiceNavRec = null;
