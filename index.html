@@ -52,6 +52,38 @@ input, textarea {
 .modal-overlay .modal{position:relative;z-index:1;}
 .modal{background:#FFFBF7;border:1px solid #D4C4B0;border-radius:20px;padding:2rem 1.5rem;width:100%;max-width:380px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.15);}
 .modal-ball{font-size:3rem;margin-bottom:1rem;}
+.voice-fab{
+  position:fixed;bottom:24px;right:20px;z-index:90;
+  width:52px;height:52px;border-radius:50%;
+  background:#0F1C2E;border:2px solid rgba(255,255,255,.15);
+  box-shadow:0 4px 16px rgba(0,0,0,.25);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:22px;transition:all .2s;outline:none;
+}
+.voice-fab:hover{transform:scale(1.05);box-shadow:0 6px 20px rgba(0,0,0,.35);}
+.voice-fab.listening{
+  background:#C0392B;border-color:#E74C3C;
+  animation:fabpulse 1s infinite;
+}
+@keyframes fabpulse{0%,100%{box-shadow:0 0 0 0 rgba(231,76,60,.4);}50%{box-shadow:0 0 0 10px rgba(231,76,60,0);}}
+
+.voice-panel{
+  position:fixed;bottom:86px;right:16px;z-index:90;
+  background:#FFFBF7;border:1px solid #E8DDD0;border-radius:14px;
+  padding:14px;width:220px;
+  box-shadow:0 8px 24px rgba(0,0,0,.15);
+  display:none;
+}
+.voice-panel.show{display:block;}
+.voice-panel-title{font-size:11px;font-weight:600;color:#2D2318;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;}
+.voice-cmd{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;cursor:pointer;transition:background .15s;}
+.voice-cmd:hover{background:#F0E8DC;}
+.voice-cmd-icon{font-size:14px;width:20px;text-align:center;flex-shrink:0;}
+.voice-cmd-text{font-size:12px;color:#2D2318;}
+.voice-cmd-text span{font-size:10px;color:#A89880;display:block;}
+.voice-panel-mic{width:100%;margin-top:10px;padding:9px;background:#00A859;border:none;border-radius:8px;color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;}
+.voice-panel-mic.active{background:#C0392B;}
+.voice-transcript-mini{font-size:11px;color:#7A6050;text-align:center;margin-top:6px;min-height:16px;}
 .guide-overlay{position:fixed;inset:0;background:rgba(15,28,46,.8);backdrop-filter:blur(8px);z-index:101;display:none;align-items:center;justify-content:center;padding:1rem;}
 .guide-overlay.show{display:flex;}
 .guide-modal{background:#FFFBF7;border-radius:20px;width:100%;max-width:380px;overflow:hidden;max-height:90vh;overflow-y:auto;}
@@ -254,6 +286,43 @@ input, textarea {
 </head>
 <body>
 
+<!-- Sesli Navigasyon Floating Buton -->
+<div class="voice-panel" id="voice-panel">
+  <div class="voice-panel-title">🎤 Sesli Komutlar</div>
+  <div class="voice-cmd" onclick="runVoiceCmd('sıralama')">
+    <span class="voice-cmd-icon">🏆</span>
+    <div class="voice-cmd-text">"Sıralama"<span>Sıralama sekmesini aç</span></div>
+  </div>
+  <div class="voice-cmd" onclick="runVoiceCmd('maçlar')">
+    <span class="voice-cmd-icon">⚽</span>
+    <div class="voice-cmd-text">"Maçlar"<span>Maçlar sekmesini aç</span></div>
+  </div>
+  <div class="voice-cmd" onclick="runVoiceCmd('çizelge')">
+    <span class="voice-cmd-icon">🗓️</span>
+    <div class="voice-cmd-text">"Çizelge"<span>Çizelge sekmesini aç</span></div>
+  </div>
+  <div class="voice-cmd" onclick="runVoiceCmd('türkiye')">
+    <span class="voice-cmd-icon">🇹🇷</span>
+    <div class="voice-cmd-text">"Türkiye"<span>Türkiye maçlarını göster</span></div>
+  </div>
+  <div class="voice-cmd" onclick="runVoiceCmd('grup d')">
+    <span class="voice-cmd-icon">📂</span>
+    <div class="voice-cmd-text">"Grup D"<span>Grup D maçlarını filtrele</span></div>
+  </div>
+  <div class="voice-cmd" onclick="runVoiceCmd('tahmin girmediğim')">
+    <span class="voice-cmd-icon">⚠️</span>
+    <div class="voice-cmd-text">"Tahmin girmediğim"<span>Eksik tahminleri listele</span></div>
+  </div>
+  <div class="voice-cmd" onclick="runVoiceCmd('bugün')">
+    <span class="voice-cmd-icon">📅</span>
+    <div class="voice-cmd-text">"Bugün"<span>Bugünkü maçları göster</span></div>
+  </div>
+  <button class="voice-panel-mic" id="voice-panel-mic" onclick="toggleVoiceNav()">🎤 Dinlemeye Başla</button>
+  <div class="voice-transcript-mini" id="voice-transcript-mini"></div>
+</div>
+
+<button class="voice-fab" id="voice-fab" onclick="toggleVoicePanel()">🎤</button>
+
 <div id="guide-overlay" class="guide-overlay">
   <div class="guide-modal">
     <div class="guide-head">
@@ -382,7 +451,7 @@ input, textarea {
     <button class="tab-btn" onclick="showTab('matches',this)">⚽ Maçlar</button>
     <button class="tab-btn" onclick="showTab('bracket',this)">🗓️ Çizelge</button>
     <button class="tab-btn" id="admin-tab" style="display:none" onclick="showTab('admin',this)">⚙️ Admin</button>
-     <button id="voice-nav-btn" onclick="toggleVoiceNav()" title="Sesli arama" style="margin-left:auto;flex-shrink:0;background:transparent;border:none;font-size:18px;padding:8px 8px;cursor:pointer;opacity:.5;transition:all .2s">🎤</button>
+
   </div>
 
   <div class="section active" id="tab-leaderboard">
@@ -2512,105 +2581,148 @@ const FIFA_R32_TABLE={
 let voiceNavRec = null;
 let voiceNavActive = false;
 
+function toggleVoicePanel(){
+  const panel = document.getElementById('voice-panel');
+  panel.classList.toggle('show');
+}
+
+function closeVoicePanel(){
+  document.getElementById('voice-panel').classList.remove('show');
+}
+
+// Panel dışına tıklayınca kapat
+document.addEventListener('click', function(e){
+  const panel = document.getElementById('voice-panel');
+  const fab = document.getElementById('voice-fab');
+  if(panel && fab && !panel.contains(e.target) && !fab.contains(e.target)){
+    panel.classList.remove('show');
+  }
+});
+
+function runVoiceCmd(text){
+  closeVoicePanel();
+  processVoiceNav(text);
+}
+
 function toggleVoiceNav(){
   if(voiceNavActive){ stopVoiceNav(); return; }
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if(!SR){ showToast('Sesli arama desteklenmiyor'); return; }
+  if(!SR){ showToast('Sesli arama bu tarayıcıda desteklenmiyor'); return; }
 
   voiceNavRec = new SR();
   voiceNavRec.lang = 'tr-TR';
   voiceNavRec.continuous = false;
-  voiceNavRec.interimResults = false;
+  voiceNavRec.interimResults = true;
 
   voiceNavRec.onstart = () => {
     voiceNavActive = true;
-    const btn = document.getElementById('voice-nav-btn');
-    if(btn){ btn.style.opacity='1'; btn.textContent='🔴'; }
-    showToast('🎤 Dinliyorum...');
+    const fab = document.getElementById('voice-fab');
+    const micBtn = document.getElementById('voice-panel-mic');
+    if(fab) fab.classList.add('listening');
+    if(micBtn){ micBtn.textContent='🔴 Durdurmak için tıkla'; micBtn.classList.add('active'); }
+    setVoiceTranscript('Dinliyorum...');
   };
 
   voiceNavRec.onresult = (e) => {
-    const text = e.results[0][0].transcript.toLowerCase().trim();
-    processVoiceNav(text);
+    const last = e.results[e.results.length-1];
+    const text = last[0].transcript;
+    setVoiceTranscript('"' + text + '"');
+    if(last.isFinal){
+      processVoiceNav(text.toLowerCase().trim());
+    }
   };
 
   voiceNavRec.onerror = (e) => {
     stopVoiceNav();
-    if(e.error==='no-speech') showToast('Ses algılanamadı');
-    else if(e.error==='not-allowed') showToast('Mikrofon izni gerekli');
+    if(e.error==='no-speech') setVoiceTranscript('Ses algılanamadı, tekrar dene');
+    else if(e.error==='not-allowed') setVoiceTranscript('❌ Mikrofon izni gerekli');
+    else setVoiceTranscript('Hata: ' + e.error);
   };
 
   voiceNavRec.onend = () => stopVoiceNav();
-  voiceNavRec.start();
+
+  try{ voiceNavRec.start(); }
+  catch(e){ voiceNavRec=null; showToast('Mikrofon başlatılamadı'); }
 }
 
 function stopVoiceNav(){
   voiceNavActive = false;
-  const btn = document.getElementById('voice-nav-btn');
-  if(btn){ btn.style.opacity='.6'; btn.textContent='🎤'; }
+  const fab = document.getElementById('voice-fab');
+  const micBtn = document.getElementById('voice-panel-mic');
+  if(fab){ fab.classList.remove('listening'); fab.textContent='🎤'; }
+  if(micBtn){ micBtn.textContent='🎤 Dinlemeye Başla'; micBtn.classList.remove('active'); }
   try{ voiceNavRec?.stop(); } catch(e){}
+  setTimeout(()=>setVoiceTranscript(''), 2000);
+}
+
+function setVoiceTranscript(text){
+  const el = document.getElementById('voice-transcript-mini');
+  if(el) el.textContent = text;
 }
 
 function processVoiceNav(text){
-  // Tab navigasyonu
-  if(text.includes('sıralama')||text.includes('puan')||text.includes('lider')){
-    showTab('lb'); showToast('🏆 Sıralama açıldı'); return;
+  const t = text.toLowerCase().trim();
+
+  if(t.includes('siralama')||t.includes('sıralama')||t.includes('puan')||t.includes('lider')){
+    showTab('lb'); showToast('🏆 Sıralama açıldı');
+    closeVoicePanel(); return;
   }
-  if(text.includes('çizelge')||text.includes('bracket')||text.includes('eleme')){
-    showTab('bracket'); showToast('🗓️ Çizelge açıldı'); return;
+  if(t.includes('cizelge')||t.includes('çizelge')||t.includes('bracket')){
+    showTab('bracket'); showToast('🗓️ Çizelge açıldı');
+    closeVoicePanel(); return;
   }
-  if(text.includes('maçlar')||text.includes('maç listesi')){
-    showTab('matches'); showToast('⚽ Maçlar açıldı'); return;
+  if(t.includes('maclar')||t.includes('maçlar')||t.includes('mac listesi')){
+    showTab('matches'); showToast('⚽ Maçlar açıldı');
+    closeVoicePanel(); return;
   }
-  if(text.includes('admin')){
-    if(IS_ADMIN){ showTab('admin'); showToast('⚙️ Admin açıldı'); }
-    else showToast('Yetki yok');
-    return;
+  if(t.includes('admin')&&IS_ADMIN){
+    showTab('admin'); showToast('⚙️ Admin açıldı');
+    closeVoicePanel(); return;
   }
 
-  // Filtreler
-  if(text.includes('tahmin girme')||text.includes('eksik')||text.includes('girmediğim')||text.includes('boş')){
+  if(t.includes('tahmin girme')||t.includes('eksik')||t.includes('girmedigim')||t.includes('girmediğim')||t.includes('bos')){
     showTab('matches');
-    filterGroup('missing', null);
-    const missing = matches.filter(m=>!preds[m.id]?.[ME?.id]);
-    showToast(`⚠️ ${missing.length} maçta tahmin eksik`); return;
+    activeGroup='missing';
+    renderMatches();
+    const missing=matches.filter(m=>!preds[m.id]||!preds[m.id][ME.id]||preds[m.id][ME.id].h===null);
+    showToast('⚠️ '+missing.length+' maçta tahmin eksik');
+    closeVoicePanel(); return;
   }
-  if(text.includes('bugün')){
+  if(t.includes('bugun')||t.includes('bugün')){
     showTab('matches');
-    filterGroup('today', null);
-    showToast('📅 Bugünkü maçlar'); return;
+    activeGroup='today';
+    renderMatches();
+    showToast('📅 Bugünkü maçlar');
+    closeVoicePanel(); return;
   }
 
-  // Grup filtresi
-  const grupMatch = text.match(/grup\s*([a-lA-L])/);
-  if(grupMatch){
-    const gid = grupMatch[1].toUpperCase();
-    showTab('matches');
-    // Grup filtresini aktif et
-    const btn = document.querySelector(`.gf-btn[onclick*="'${gid}'"]`);
-    if(btn){ filterGroup(gid, btn); showToast(`📂 Grup ${gid}`); }
-    return;
+  // Grup filtresi: "grup d", "grup a" vb.
+  const grpLetters = ['a','b','c','d','e','f','g','h','i','j','k','l'];
+  for(const letter of grpLetters){
+    if(t.includes('grup '+letter)||t.endsWith(' '+letter)){
+      const gid = letter.toUpperCase();
+      document.querySelectorAll('.gf-btn').forEach(b=>{
+        if(b.textContent.trim()===gid) b.click();
+      });
+      showToast('📂 Grup '+gid);
+      closeVoicePanel(); return;
+    }
   }
 
   // Takım arama
-  const teamNames = ['türkiye','brezilya','arjantin','fransa','almanya',
-    'İspanya','portekiz','hollanda','İngiltere','japonya','fas','abd',
-    'meksika','kanada','avustralya','senegal','kolombiya','uruguay',
-    'belçika','İtalya','hırvatistan','isviçre','polonya','ekvador',
-    'bosna','avusturya','norveç','İsveç','İskoçya','çekya','katar'];
-
-  const found = teamNames.find(t => text.includes(t));
-  if(found){
+  const allTeamNames = [];
+  GROUPS.forEach(g=>g.teams.forEach(tm=>allTeamNames.push(tm.n)));
+  const foundTeam = allTeamNames.find(name=>t.includes(name.toLowerCase()));
+  if(foundTeam){
     showTab('matches');
-    activeGroup = found;
+    activeGroup='team_'+foundTeam.toLowerCase();
     renderMatches();
-    showToast(`🔍 ${found.charAt(0).toUpperCase()+found.slice(1)} maçları`);
-    return;
+    showToast('🔍 '+foundTeam+' maçları');
+    closeVoicePanel(); return;
   }
 
-  showToast(`"${text}" anlaşılamadı`);
+  showToast('"'+text+'" anlaşılamadı');
 }
-
 buildMatches();
 initJoin();
 
