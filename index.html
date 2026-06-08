@@ -2055,9 +2055,19 @@ function showToast(msg){
 function showTab(id,btn){
   document.querySelectorAll('.tab-btn').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById('tab-'+id).classList.add('active');
-  if(id==='bracket')renderBracket();
+  if(btn) btn.classList.add('active');
+  else {
+    // Buton verilmemişse ID'ye göre bul
+    const tabMap = {'lb':'lb','matches':'matches','bracket':'bracket','admin':'admin'};
+    document.querySelectorAll('.tab-btn').forEach(t=>{
+      if(t.getAttribute('onclick')&&t.getAttribute('onclick').includes("'"+id+"'")) t.classList.add('active');
+    });
+  }
+  const tabEl = document.getElementById('tab-'+id);
+  if(tabEl) tabEl.classList.add('active');
+  if(id==='bracket') renderBracket();
+  if(id==='matches') renderMatches();
+  if(id==='lb') renderLeaderboard();
 }
 
 // Service Worker (PWA offline support)
