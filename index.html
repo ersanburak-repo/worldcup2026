@@ -1234,7 +1234,21 @@ function filterGroup(id,btn){
 // ── MATCHES ──
 function renderMatches(){
   const el=document.getElementById('matches-content');
-  const filtered=activeGroup==='all'?matches:matches.filter(m=>m.group===activeGroup);
+  let filtered;
+  if(!activeGroup||activeGroup==='all'){
+    filtered=matches;
+  } else if(activeGroup==='missing'){
+    filtered=matches.filter(m=>!preds[m.id]||!preds[m.id][ME?.id]||preds[m.id][ME.id].h===null||preds[m.id][ME.id].h===undefined);
+  } else if(activeGroup==='today'){
+    const now=Date.now();
+    filtered=matches.filter(m=>{const ko=MATCH_KICKOFFS[m.id];return ko&&Math.abs(ko-now)<86400000;});
+    if(!filtered.length)filtered=matches.slice(0,6);
+  } else if(activeGroup.startsWith('team_')){
+    const tn=activeGroup.slice(5);
+    filtered=matches.filter(m=>m.home.n.toLowerCase()===tn||m.away.n.toLowerCase()===tn);
+  } else {
+    filtered=matches.filter(m=>m.group===activeGroup);
+  }
   const byRound={1:[],2:[],3:[]};
   filtered.forEach(m=>byRound[m.round].push(m));
   let html='';
@@ -2066,7 +2080,12 @@ function showTab(id,btn){
   const tabEl = document.getElementById('tab-'+id);
   if(tabEl) tabEl.classList.add('active');
   if(id==='bracket') renderBracket();
-  if(id==='matches') renderMatches();
+  if(id==='matches'){
+    // Sesli komuttan gelmediyse filtreyi sıfırla
+    if(!window._voiceFilter) activeGroup='all';
+    window._voiceFilter=false;
+    renderMatches();
+  }
   if(id==='lb') renderLeaderboard();
 }
 
@@ -2682,7 +2701,7 @@ function processVoiceNav(text){
     closeVoicePanel(); return;
   }
   if(t.includes('maclar')||t.includes('maçlar')||t.includes('mac listesi')){
-    showTab('matches'); showToast('⚽ Maçlar açıldı');
+    window._voiceFilter=false; showTab('matches'); showToast('⚽ Maçlar açıldı');
     closeVoicePanel(); return;
   }
   if(t.includes('admin')&&IS_ADMIN){
@@ -2692,7 +2711,7 @@ function processVoiceNav(text){
 
   if(t.includes('tahmin girme')||t.includes('eksik')||t.includes('girmedigim')||t.includes('girmediğim')||t.includes('bos')){
     showTab('matches');
-    activeGroup='missing';
+    window._voiceFilter=true; activeGroup='missing';
     renderMatches();
     const missing=matches.filter(m=>!preds[m.id]||!preds[m.id][ME.id]||preds[m.id][ME.id].h===null);
     showToast('⚠️ '+missing.length+' maçta tahmin eksik');
@@ -2700,7 +2719,7 @@ function processVoiceNav(text){
   }
   if(t.includes('bugun')||t.includes('bugün')){
     showTab('matches');
-    activeGroup='today';
+    window._voiceFilter=true; activeGroup='today';
     renderMatches();
     showToast('📅 Bugünkü maçlar');
     closeVoicePanel(); return;
@@ -2725,7 +2744,7 @@ function processVoiceNav(text){
   const foundTeam = allTeamNames.find(name=>t.includes(name.toLowerCase()));
   if(foundTeam){
     showTab('matches');
-    activeGroup='team_'+foundTeam.toLowerCase();
+    window._voiceFilter=true; activeGroup='team_'+foundTeam.toLowerCase();
     renderMatches();
     showToast('🔍 '+foundTeam+' maçları');
     closeVoicePanel(); return;
