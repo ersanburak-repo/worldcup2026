@@ -268,13 +268,13 @@ input, textarea {
 .ko-sel-btn{flex:1;padding:5px 4px;font-size:10px;font-weight:600;border:1.5px solid var(--border2);border-radius:var(--radius-sm);background:transparent;cursor:pointer;color:var(--text2);transition:all .15s;font-family:'DM Sans',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .ko-sel-btn.selected{background:#D1FAE5;color:#065F46;border-color:#00A859;}
 .bk-pred-result{display:flex;align-items:center;gap:8px;padding:6px 8px;background:#F8FAFC;border-top:1px solid var(--border);flex-wrap:wrap;}
-.prob-bar{margin-top:8px;border-top:1px solid var(--border);padding:8px 0 4px;}
-.prob-row{display:flex;align-items:center;gap:0;border-radius:6px;overflow:hidden;height:20px;margin-bottom:4px;}
-.prob-h{background:#00A859;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;min-width:20px;transition:width .3s;}
-.prob-d{background:#94A3B8;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;min-width:20px;transition:width .3s;}
-.prob-a{background:#E24040;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;min-width:20px;transition:width .3s;}
+.prob-bar{margin:6px 14px 0;padding:6px 0 8px;border-top:1px solid var(--border);}
+.prob-row{display:flex;align-items:center;gap:0;border-radius:6px;overflow:hidden;height:18px;margin-bottom:4px;}
+.prob-h{background:#2ECC71;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:#1a7a43;min-width:18px;transition:width .3s;}
+.prob-d{background:#BDC3C7;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:#5f6368;min-width:18px;transition:width .3s;}
+.prob-a{background:#E74C3C;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:#8b1a1a;min-width:18px;transition:width .3s;}
 .prob-labels{display:flex;justify-content:space-between;font-size:9px;color:var(--text3);}
-.prob-source{font-size:9px;color:var(--text3);text-align:center;margin-top:3px;font-style:italic;}
+.prob-source{font-size:9px;color:var(--text3);text-align:right;margin-top:2px;font-style:italic;}
 .bk-pred-row{display:flex;align-items:center;gap:6px;padding:5px 8px;background:rgba(0,192,106,.04);border-top:1px solid var(--border);flex-wrap:wrap;}
 .bk-pred-label{font-size:10px;color:var(--text2);flex:1;}
 .bk-pred-inputs{display:flex;align-items:center;gap:4px;}
@@ -1288,6 +1288,7 @@ function renderMatches(){
         // İhtimal barı
         const probs = getMatchProbs(m.home.n, m.away.n);
         if(probs){
+          const favori = probs.h > probs.a ? m.home.n : probs.a > probs.h ? m.away.n : null;
           card+=`<div class="prob-bar">
             <div class="prob-row">
               <div class="prob-h" style="width:${probs.h}%">${probs.h}%</div>
@@ -1295,11 +1296,11 @@ function renderMatches(){
               <div class="prob-a" style="width:${probs.a}%">${probs.a}%</div>
             </div>
             <div class="prob-labels">
-              <span>${m.home.n}</span>
-              <span>Ber</span>
-              <span>${m.away.n}</span>
+              <span>${m.home.f} ${probs.h}%</span>
+              <span style="color:var(--text3)">Ber ${probs.d}%</span>
+              <span>${probs.a}% ${m.away.f}</span>
             </div>
-            <div class="prob-source">📊 Veri: FIFA Nisan 2026 Sıralaması</div>
+            <div class="prob-source">📊 FIFA Nisan 2026${favori?' · '+favori+' favorisi':' · Dengeli maç'}</div>
           </div>`;
         }
         card+=`<div class="my-band"><div class="my-band-label">🎯 Tahminim</div>
