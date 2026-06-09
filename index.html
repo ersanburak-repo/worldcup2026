@@ -919,19 +919,13 @@ let _isNewUser = false;
 function initials(n){ return n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2); }
 
 async function initJoin(){
-  // Supabase session kontrolü - daha önce giriş yapmış mı?
-  const { data: { session } } = await supabaseClient.auth.getSession();
-  if(session){
-    await loadUserFromAuth(session.user);
-    return;
-  }
+  // Session varsa çıkış yap - her açılışta login ekranı göster
+  await supabaseClient.auth.signOut();
 
   // Auth state dinle (şifre sıfırlama linki vs)
   supabaseClient.auth.onAuthStateChange(async (event, session) => {
     if(event === 'PASSWORD_RECOVERY'){
       showStep('step-new-pass');
-    } else if(event === 'SIGNED_IN' && session){
-      await loadUserFromAuth(session.user);
     }
   });
 
