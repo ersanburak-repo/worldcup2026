@@ -37,7 +37,7 @@ input, textarea {
   -webkit-user-select: text;
   user-select: text;
 }
-.hero{background:linear-gradient(160deg,#0F1C2E 0%,#162440 50%,#0A1525 100%);border-bottom:1px solid var(--border);padding:2rem 1.25rem 1.5rem;position:relative;overflow:hidden;}
+.hero{background:linear-gradient(160deg,#0F1C2E 0%,#162440 50%,#0A1525 100%);border-bottom:1px solid var(--border);padding:max(2rem, calc(1rem + env(safe-area-inset-top))) 1.25rem 1.5rem;position:relative;overflow:hidden;}
 .hero::before{content:'⚽';position:absolute;font-size:180px;right:-30px;top:-20px;opacity:.06;pointer-events:none;}
 .hero-eyebrow{font-size:11px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:#4ADE80;margin-bottom:.5rem;}
 .hero-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.4rem,8vw,3.2rem);line-height:.95;color:#FFFFFF;margin-bottom:.75rem;}
@@ -268,16 +268,12 @@ input, textarea {
 .ko-sel-btn{flex:1;padding:5px 4px;font-size:10px;font-weight:600;border:1.5px solid var(--border2);border-radius:var(--radius-sm);background:transparent;cursor:pointer;color:var(--text2);transition:all .15s;font-family:'DM Sans',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .ko-sel-btn.selected{background:#D1FAE5;color:#065F46;border-color:#00A859;}
 .bk-pred-result{display:flex;align-items:center;gap:8px;padding:6px 8px;background:#F8FAFC;border-top:1px solid var(--border);flex-wrap:wrap;}
-.prob-bar{padding:8px 14px 10px;border-top:1px solid var(--border);}
+.prob-bar{padding:7px 14px 8px;border-top:1px solid var(--border);}
 .prob-inner{max-width:360px;margin:0 auto;}
-.prob-row{display:flex;align-items:center;gap:0;border-radius:6px;overflow:hidden;height:18px;margin-bottom:5px;}
-.prob-h{background:#2ECC71;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:#1a7a43;min-width:18px;transition:width .3s;}
-.prob-d{background:#BDC3C7;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:#5f6368;min-width:18px;transition:width .3s;}
-.prob-a{background:#E74C3C;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:#8b1a1a;min-width:18px;transition:width .3s;}
-.prob-labels{display:grid;grid-template-columns:1fr 1fr 1fr;font-size:9px;color:var(--text3);text-align:center;}
-.prob-labels span:first-child{text-align:left;}
-.prob-labels span:last-child{text-align:right;}
-.prob-source{font-size:9px;color:var(--text3);text-align:center;margin-top:3px;font-style:italic;}
+.prob-row{display:flex;align-items:center;gap:0;border-radius:6px;overflow:hidden;height:22px;}
+.prob-h{background:#2ECC71;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:#1a7a43;min-width:22px;transition:width .3s;}
+.prob-d{background:#BDC3C7;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:#5f6368;min-width:22px;transition:width .3s;}
+.prob-a{background:#E74C3C;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:#8b1a1a;min-width:22px;transition:width .3s;}
 .bk-pred-row{display:flex;align-items:center;gap:6px;padding:5px 8px;background:rgba(0,192,106,.04);border-top:1px solid var(--border);flex-wrap:wrap;}
 .bk-pred-label{font-size:10px;color:var(--text2);flex:1;}
 .bk-pred-inputs{display:flex;align-items:center;gap:4px;}
@@ -430,7 +426,7 @@ input, textarea {
 
 <div id="app" style="display:none">
   <div class="hero">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.25rem">
+     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.25rem;padding-top:env(safe-area-inset-top,8px)">
       <div class="hero-eyebrow" style="margin-bottom:0">FIFA Dünya Kupası · ABD / Kanada / Meksika</div>
       <div style="display:flex;align-items:center;gap:6px">
         <button id="guide-btn" onclick="showGuide()" style="display:none;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.75);font-size:11px;padding:4px 10px;border-radius:99px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s" onmouseover="this.style.background='rgba(255,255,255,.18)';this.style.color='#fff'" onmouseout="this.style.background='rgba(255,255,255,.1)';this.style.color='rgba(255,255,255,.75)'">? Kılavuz</button>
@@ -1298,12 +1294,6 @@ function renderMatches(){
               <div class="prob-d" style="width:${probs.d}%">${probs.d}%</div>
               <div class="prob-a" style="width:${probs.a}%">${probs.a}%</div>
             </div>
-            <div class="prob-labels">
-              <span>${m.home.f} ${probs.h}%</span>
-              <span style="color:var(--text3)">Ber ${probs.d}%</span>
-              <span>${probs.a}% ${m.away.f}</span>
-            </div>
-            <div class="prob-source">📊 FIFA Nisan 2026${favori?' · '+favori+' favorisi':' · Dengeli maç'}</div>
           </div></div>`;
         }
         card+=`<div class="my-band"><div class="my-band-label">🎯 Tahminim</div>
