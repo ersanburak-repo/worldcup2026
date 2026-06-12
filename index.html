@@ -1311,7 +1311,16 @@ function renderMatches(){
       const myA=myP.a!==null&&myP.a!==undefined?myP.a:'';
       const myPts=calcPts(m.id,ME?.id);
       let card=`<div class="match-card">`;
-      card+=`<div class="match-top"><div class="match-top-left">Grup ${m.group} · ${m.round}. Tur</div>${done?'<span class="badge-done">✓ Bitti</span>':'<span class="badge-soon">Oynanmadı</span>'}</div>`;
+      // Kickoff zamanını formatla (İstanbul saati)
+        let kickoffStr='';
+        const koTime=MATCH_KICKOFFS[m.id];
+        if(koTime){
+          const d=new Date(koTime);
+          const day=d.toLocaleDateString('tr-TR',{day:'2-digit',month:'2-digit',timeZone:'Europe/Istanbul'});
+          const time=d.toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/Istanbul'});
+          kickoffStr=day+' '+time;
+        }
+        card+=`<div class="match-top"><div class="match-top-left">Grup ${m.group} · ${m.round}. Tur</div>${done?'<span class="badge-done">✓ Bitti</span>':`<span class="badge-soon">${kickoffStr||'Oynanmadı'}</span>`}</div>`;
       if(done){
         card+=`<div class="real-band"><div class="real-grid">
           <div class="real-team"><span class="real-flag">${m.home.f}</span><span class="real-name">${m.home.n}</span></div>
