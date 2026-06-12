@@ -839,17 +839,73 @@ function groupStandings(gid){
   if(!g)return[];
   const stats={};
   g.teams.forEach(t=>{stats[t.n]={...t,gp:0,w:0,d:0,l:0,gf:0,ga:0};});
-  matches.filter(m=>m.group===gid&&finished(m.id)).forEach(m=>{
+  const grpMatches=matches.filter(m=>m.group===gid&&finished(m.id));
+  grpMatches.forEach(m=>{
     const h=stats[m.home.n],a=stats[m.away.n],r=realScores[m.id];
     if(!h||!a)return;
     h.gp++;a.gp++;h.gf+=r.h;h.ga+=r.a;a.gf+=r.a;a.ga+=r.h;
     if(r.h>r.a){h.w++;a.l++;}else if(r.a>r.h){a.w++;h.l++;}else{h.d++;a.d++;}
   });
-  return Object.values(stats).sort((a,b)=>{
-    const pa=a.w*3+a.d,pb=b.w*3+b.d;
-    if(pb!==pa)return pb-pa;
-    return(b.gf-b.ga)-(a.gf-a.ga);
-  });
+
+  // Mini tablo hesapla: verilen takımlar arasında H2H istatistikleri
+  function calcH2H(teams){
+    const h2h={};
+    teams.forEach(n=>{h2h[n]={pts:0,gd:0,gf:0};});
+    grpMatches.forEach(m=>{
+      if(!teams.includes(m.home.n)||!teams.includes(m.away.n))return;
+      const r=realScores[m.id];
+      h2h[m.home.n].gf+=r.h; h2h[m.home.n].gd+=(r.h-r.a);
+      h2h[m.away.n].gf+=r.a; h2h[m.away.n].gd+=(r.a-r.h);
+      if(r.h>r.a){h2h[m.home.n].pts+=3;}
+      else if(r.a>r.h){h2h[m.away.n].pts+=3;}
+      else{h2h[m.home.n].pts+=1;h2h[m.away.n].pts+=1;}
+    });
+    return h2h;
+  }
+
+  // FIFA kriterleri ile sırala
+  function fifaSort(teams){
+    teams.sort((a,b)=>{
+      const pa=a.w*3+a.d, pb=b.w*3+b.d;
+      if(pb!==pa) return pb-pa;                          // 1. Puan
+      const gda=a.gf-a.ga, gdb=b.gf-b.ga;
+      if(gdb!==gda) return gdb-gda;                      // 2. Gol averajı
+      if(b.gf!==a.gf) return b.gf-a.gf;                 // 3. Atılan gol
+      return 0; // eşit → H2H grubuna bırak
+    });
+
+    // Eşit puanlı grupları bul ve kendi aralarında H2H uygula
+    let i=0;
+    while(i<teams.length){
+      let j=i+1;
+      const pa=teams[i].w*3+teams[i].d;
+      const gda=teams[i].gf-teams[i].ga;
+      const gfa=teams[i].gf;
+      while(j<teams.length){
+        const pb=teams[j].w*3+teams[j].d;
+        const gdb=teams[j].gf-teams[j].ga;
+        const gfb=teams[j].gf;
+        if(pb===pa&&gdb===gda&&gfb===gfa) j++;
+        else break;
+      }
+      if(j-i>1){
+        // Bu grup eşit — H2H uygula
+        const tiedNames=teams.slice(i,j).map(t=>t.n);
+        const h2h=calcH2H(tiedNames);
+        teams.slice(i,j).sort((a,b)=>{
+          if(h2h[b.n].pts!==h2h[a.n].pts) return h2h[b.n].pts-h2h[a.n].pts; // H2H puan
+          if(h2h[b.n].gd!==h2h[a.n].gd) return h2h[b.n].gd-h2h[a.n].gd;   // H2H gol averajı
+          if(h2h[b.n].gf!==h2h[a.n].gf) return h2h[b.n].gf-h2h[a.n].gf;   // H2H atılan gol
+          const fpA=FIFA_POINTS[a.n]||1000, fpB=FIFA_POINTS[b.n]||1000;
+          return fpB-fpA;                                                       // FIFA sıralaması
+        }).forEach((t,k)=>{teams[i+k]=t;});
+      }
+      i=j;
+    }
+    return teams;
+  }
+
+  return fifaSort(Object.values(stats));
 }
 
 function getGroupTeam(gid,pos){
