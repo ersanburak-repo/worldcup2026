@@ -145,7 +145,7 @@ input, textarea {
 .match-top{padding:10px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
 .match-top-left{font-size:10px;color:#A89880;text-transform:uppercase;letter-spacing:.06em;font-weight:500;}
 .badge-done{font-size:10px;padding:2px 8px;border-radius:99px;background:#D1FAE5;color:#065F46;font-weight:600;}
-.badge-soon{font-size:10px;padding:2px 8px;border-radius:99px;background:#F0E8DC;color:#7A6050;font-weight:500;}
+.badge-soon{font-size:11px;padding:3px 10px;border-radius:6px;background:#1A2A4A;color:#7EC8FF;font-weight:600;letter-spacing:.01em;}
 .real-band{padding:14px;background:#F0FDF8;border-bottom:1px solid #BBF7D0;}
 .real-grid{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;}
 .real-team{display:flex;flex-direction:column;align-items:flex-start;gap:3px;}
@@ -1181,6 +1181,9 @@ async function startApp(){
   document.getElementById('app').style.display='block';
   document.getElementById('logout-btn').style.display='block';
   document.getElementById('guide-btn').style.display='block';
+  // Maçlar sekmesini varsayılan aç
+  const matchesBtn = document.querySelector('.tab-btn[onclick*="matches"]');
+  if(matchesBtn) showTab('matches', matchesBtn);
   if(IS_ADMIN){
     document.getElementById('admin-tab').style.display='flex';
     document.getElementById('admin-badge-wrap').innerHTML='<div class="admin-badge">⚙️ Admin modu · Burak</div>';
