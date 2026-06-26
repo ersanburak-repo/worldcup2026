@@ -744,7 +744,7 @@ async function loadAll(){
   (sc||[]).forEach(s=>{realScores[s.match_id]={h:s.real_h,a:s.real_a};});
   knockoutData={};
   (km||[]).forEach(m=>{
-    knockoutData[+m.id]={
+    knockoutData[+m.slot]={
       ...m,
       id: +m.id,
       real_h: m.real_h!==null&&m.real_h!==undefined ? +m.real_h : null,
