@@ -1981,6 +1981,15 @@ function renderAdminPlayers(){
     }).join('');
 }
 
+function allTeamOptions(selected){
+  let opts='';
+  GROUPS.forEach(g=>g.teams.forEach(t=>{
+    const sel=(selected===t.n)?'selected':'';
+    opts+=`<option value="${t.n}" ${sel}>${t.f} ${t.n}</option>`;
+  }));
+  return opts;
+}
+
 function renderAdminKnockout(){
   const el=document.getElementById('admin-knockout-override');
   if(!el||!IS_ADMIN)return;
@@ -2004,7 +2013,7 @@ function renderAdminKnockout(){
       const autoHome=getKOTeam(slot,'H');
       const autoAway=getKOTeam(slot,'A');
 
-      html+=`<div style="background:${isOverride?'rgba(255,100,100,.08)':'var(--bg3)'};border:1px solid ${isOverride?'#FF6B6B':'var(--border)'};border-radius:8px;padding:10px 12px;margin-bottom:6px;">
+      html+=`<div id="ko-card-${slot}" style="background:${isOverride?'rgba(255,100,100,.08)':'var(--bg3)'};border:1px solid ${isOverride?'#FF6B6B':'var(--border)'};border-radius:8px;padding:10px 12px;margin-bottom:6px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
           <span style="font-size:11px;font-weight:600;color:${isOverride?'#FF6B6B':'var(--text2)'}">
             M${72+slot} ${isOverride?'🔧 MANUEL':'⚙️ OTOMATİK'}
@@ -2014,20 +2023,21 @@ function renderAdminKnockout(){
         <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:6px;align-items:center;">
           <div>
             <div style="font-size:10px;color:var(--text3);margin-bottom:3px">Ev Sahibi</div>
-            <input type="text" value="${km.home_name||''}" placeholder="${autoHome?autoHome.f+' '+autoHome.n:'Otomatik'}"
-              id="ko-home-${slot}" 
-              style="width:100%;padding:5px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;font-family:'DM Sans',sans-serif"
-              onchange="saveKOOverride(${slot})"/>
+            <select id="ko-home-${slot}" style="width:100%;padding:5px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;font-family:'DM Sans',sans-serif">
+              <option value="">⚙️ Otomatik (${autoHome?autoHome.f+' '+autoHome.n:'?'})</option>
+              ${allTeamOptions(km.home_name)}
+            </select>
           </div>
           <div style="font-size:16px;color:var(--text3);text-align:center">vs</div>
           <div>
             <div style="font-size:10px;color:var(--text3);margin-bottom:3px">Deplasman</div>
-            <input type="text" value="${km.away_name||''}" placeholder="${autoAway?autoAway.f+' '+autoAway.n:'Otomatik'}"
-              id="ko-away-${slot}"
-              style="width:100%;padding:5px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;font-family:'DM Sans',sans-serif"
-              onchange="saveKOOverride(${slot})"/>
+            <select id="ko-away-${slot}" style="width:100%;padding:5px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;font-family:'DM Sans',sans-serif">
+              <option value="">⚙️ Otomatik (${autoAway?autoAway.f+' '+autoAway.n:'?'})</option>
+              ${allTeamOptions(km.away_name)}
+            </select>
           </div>
         </div>
+        <button onclick="saveKOOverride(${slot})" style="width:100%;margin-top:8px;padding:7px;background:#00A859;border:none;border-radius:6px;color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">💾 Kaydet</button>
       </div>`;
     });
   });
@@ -2038,17 +2048,36 @@ function renderAdminKnockout(){
 async function saveKOOverride(slot){
   const homeVal=document.getElementById('ko-home-'+slot)?.value.trim();
   const awayVal=document.getElementById('ko-away-'+slot)?.value.trim();
-  if(!homeVal&&!awayVal)return;
 
-  const km=knockoutData[slot]||{};
+  // Supabase'e kaydet
+  // Bayrakları da bul
+  const homeTeam=GROUPS.flatMap(g=>g.teams).find(t=>t.n===homeVal);
+  const awayTeam=GROUPS.flatMap(g=>g.teams).find(t=>t.n===awayVal);
+  const homeFlagVal=homeTeam?homeTeam.f:null;
+  const awayFlagVal=awayTeam?awayTeam.f:null;
+
   await api('PATCH','knockout_matches?slot=eq.'+slot,{
     home_name:homeVal||null,
     away_name:awayVal||null,
+    home_flag:homeFlagVal||null,
+    away_flag:awayFlagVal||null,
   });
-  if(!knockoutData[slot]) knockoutData[slot]={slot};
+  if(!knockoutData[slot]) knockoutData[slot]={id:slot,slot};
   knockoutData[slot].home_name=homeVal||null;
   knockoutData[slot].away_name=awayVal||null;
-  showToast('✓ Slot '+slot+' güncellendi');
+  knockoutData[slot].home_flag=homeFlagVal||null;
+  knockoutData[slot].away_flag=awayFlagVal||null;
+
+  showToast('✓ M'+(72+slot)+' kaydedildi');
+  // Admin panelini yeniden render ET ama input focus'u koru
+  // renderAdminKnockout() ÇAĞIRMA - kaybolur
+  // Sadece kart stilini güncelle
+  const card=document.getElementById('ko-card-'+slot);
+  if(card){
+    const isOverride=homeVal||awayVal;
+    card.style.background=isOverride?'rgba(255,100,100,.08)':'var(--bg3)';
+    card.style.borderColor=isOverride?'#FF6B6B':'var(--border)';
+  }
   renderBracket();
 }
 
