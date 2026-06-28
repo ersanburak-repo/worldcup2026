@@ -1637,7 +1637,7 @@ function bkMatchCard(id,round,homeTeam,awayTeam,km,dateLabel,label){
   // Kullanıcı tahmin bölümü
   let predSection='';
   // R32 (slot 1-16) için tahmin kilitli mi?
-  const r32Locked = (id<=16 && typeof R32_PRED_LOCKED!=='undefined' && R32_PRED_LOCKED) || isKOMatchLocked(id);
+  const r32Locked = isKOMatchLocked(id);
   if(teamsKnown&&!matchDone&&!r32Locked){
     // 90 dk tahmini
     const pred90Draw = myH!==''&&myA!==''&&+myH===+myA;
@@ -1673,11 +1673,6 @@ function bkMatchCard(id,round,homeTeam,awayTeam,km,dateLabel,label){
     </div>`;
     predSection+=`<div class="saved-note" id="kosn_${id}" style="font-size:9px;text-align:center;margin-top:4px">Kaydedildi ✓</div></div>`;
 
-  } else if(r32Locked&&!matchDone){
-    // R32 tahmin girişi kilitli
-    predSection=`<div style="padding:10px;text-align:center;font-size:12px;color:var(--text3)">
-      🔒 Grup maçları tamamlandıktan sonra R32 tahminleri açılacak
-    </div>`;
   } else if(matchDone){
     // Maç bitti - tahmin özeti
     const predStr=myH!==''?`${myH}–${myA}`:'?';
