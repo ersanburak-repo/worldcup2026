@@ -1506,7 +1506,7 @@ function renderBracket(){
     const w1=getKnockoutWinner(r1),w2=getKnockoutWinner(r2);
     const homeTeam=km.home_name?{f:km.home_flag||'🏳️',n:km.home_name}:w1;
     const awayTeam=km.away_name?{f:km.away_flag||'🏳️',n:km.away_name}:w2;
-    html+=bkMatchCard(slot,'r16',homeTeam,awayTeam,km,r16dates[i]||'',`M${2*i+1} v M${2*i+2}`);
+    html+=bkMatchCard(slot,'r16',homeTeam,awayTeam,km,r16dates[slot-17]||'',`M${72+r1} v M${72+r2}`);
   }
   html+='</div>';
 
