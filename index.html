@@ -1742,6 +1742,22 @@ function bkMatchCard(id,round,homeTeam,awayTeam,km,dateLabel,label){
     </div>
     ${extraSection}
     ${predSection}
+    ${IS_ADMIN?(()=>{
+      const others=players.filter(p=>p.id!==ME?.id&&koPreds[id]?.[p.id]?.h!==null&&koPreds[id]?.[p.id]?.h!==undefined);
+      if(!others.length) return '';
+      const accId='bk_acc_'+id;
+      let s=`<div class="others-band"><div onclick="toggleAcc('${accId}')" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:2px 0"><div class="others-label" style="margin-bottom:0">Tahminler (${others.length} kişi)</div><span id="${accId}_icon" style="font-size:11px;color:var(--text3)">▼</span></div><div id="${accId}" style="display:none;margin-top:6px">`;
+      others.forEach(p=>{
+        const pi=players.findIndex(x=>x.id===p.id);
+        const[col,bg]=pColor(pi);
+        const kp=koPreds[id]?.[p.id]||{};
+        const ph=kp.h!==null&&kp.h!==undefined?kp.h:'–',pa=kp.a!==null&&kp.a!==undefined?kp.a:'–';
+        const pts=calcKnockoutPts(id,p.id);
+        const ptsCls=pts===5?'c-green':pts===3?'c-gold':'c-dim',ptsLbl=pts!==null?`+${pts}p`:'';
+        s+=`<div class="other-row"><div class="other-av" style="background:${bg};color:${col}">${initials(p.name)}</div><div class="other-nm">${p.name}</div><div class="other-sc">${ph} – ${pa}</div><div class="other-pt ${ptsCls}">${ptsLbl}</div></div>`;
+      });
+      s+='</div></div>';return s;
+    })():''}
   </div>`;
 }
 
