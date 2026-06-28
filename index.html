@@ -627,7 +627,7 @@ const MATCH_KICKOFFS = {
 };
 
 const LOCK_BEFORE_MS = 15 * 60 * 1000; // 15 dakika
-const R32_PRED_LOCKED = true; // R32 tahmin girişi kilitli (grup maçları bitmeden)
+const R32_PRED_LOCKED = false; // R32 tahmin girişi kilitli (grup maçları bitmeden)
 
 function isMatchLocked(matchId){
   const kickoff = MATCH_KICKOFFS[matchId];
