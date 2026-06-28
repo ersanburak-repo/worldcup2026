@@ -652,8 +652,11 @@ function isMatchLocked(matchId){
   return Date.now() >= kickoff - LOCK_BEFORE_MS;
 }
 
+// Manuel açık bırakılan slotlar (admin override)
+const KO_FORCE_OPEN = new Set([2]); // G.Afrika vs Kanada
+
 function isKOMatchLocked(slot){
-  // R32 slotları 1-16, MATCH_KICKOFFS'ta 72-87 olarak kayıtlı
+  if(KO_FORCE_OPEN.has(slot)) return false; // Manuel açık
   const koKickoffId = 71 + slot;
   const kickoff = MATCH_KICKOFFS[koKickoffId];
   if(!kickoff) return false;
