@@ -1499,10 +1499,11 @@ function renderBracket(){
   html+=`<div class="bracket-section-title bst-r16">ROUND OF 16</div>`;
   html+=`<div class="bk-grid">`;
   const r16dates=['4 Tem 22:00','4 Tem 18:00','5 Tem 21:00','6 Tem 07:00','6 Tem 17:00','6 Tem 21:00','7 Tem 01:00','7 Tem 21:00'];
+  const R16_RENDER_MAP={17:[1,16],18:[2,3],19:[4,5],20:[6,7],21:[8,9],22:[10,11],23:[12,13],24:[14,15]};
   for(let slot=17;slot<=24;slot++){
     const km=knockoutData[slot]||{};
-    const i=slot-17;
-    const w1=getKnockoutWinner(2*i+1),w2=getKnockoutWinner(2*i+2);
+    const [r1,r2]=R16_RENDER_MAP[slot];
+    const w1=getKnockoutWinner(r1),w2=getKnockoutWinner(r2);
     const homeTeam=km.home_name?{f:km.home_flag||'🏳️',n:km.home_name}:w1;
     const awayTeam=km.away_name?{f:km.away_flag||'🏳️',n:km.away_name}:w2;
     html+=bkMatchCard(slot,'r16',homeTeam,awayTeam,km,r16dates[i]||'',`M${2*i+1} v M${2*i+2}`);
@@ -1771,24 +1772,24 @@ function getKOTeam(matchId, side){
     return null;
   }
 
-  // R16 (slot 17-24): önceki R32 kazananından gel
+  // R16 (slot 17-24): FIFA resmi bracket
+  const R16_MAP={17:[1,16],18:[2,3],19:[4,5],20:[6,7],21:[8,9],22:[10,11],23:[12,13],24:[14,15]};
   if(matchId>=17&&matchId<=24){
-    const i=matchId-17;
-    const prevH=2*i+1, prevA=2*i+2; // R32 slot çifti
+    const [prevH,prevA]=R16_MAP[matchId];
     return side==='H'?getKnockoutWinner(prevH):getKnockoutWinner(prevA);
   }
 
-  // QF (slot 25-28): önceki R16 kazananından gel
+  // QF (slot 25-28): R16 kazananları
+  const QF_MAP={25:[17,18],26:[19,20],27:[21,22],28:[23,24]};
   if(matchId>=25&&matchId<=28){
-    const i=matchId-25;
-    const prevH=17+2*i, prevA=18+2*i;
+    const [prevH,prevA]=QF_MAP[matchId];
     return side==='H'?getKnockoutWinner(prevH):getKnockoutWinner(prevA);
   }
 
-  // SF (slot 29-30): önceki QF kazananından gel
+  // SF (slot 29-30): QF kazananları
+  const SF_MAP={29:[25,26],30:[27,28]};
   if(matchId>=29&&matchId<=30){
-    const i=matchId-29;
-    const prevH=25+2*i, prevA=26+2*i;
+    const [prevH,prevA]=SF_MAP[matchId];
     return side==='H'?getKnockoutWinner(prevH):getKnockoutWinner(prevA);
   }
 
