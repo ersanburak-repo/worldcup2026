@@ -653,7 +653,7 @@ function isMatchLocked(matchId){
 }
 
 // Manuel açık bırakılan slotlar (admin override)
-const KO_FORCE_OPEN = new Set([2]); // G.Afrika vs Kanada
+const KO_FORCE_OPEN = new Set([1,2]); // slot 1=M73 G.Afrika/Kanada, slot 2 açık
 
 function isKOMatchLocked(slot){
   if(KO_FORCE_OPEN.has(slot)) return false; // Manuel açık
