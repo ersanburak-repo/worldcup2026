@@ -653,7 +653,7 @@ function isMatchLocked(matchId){
 }
 
 // Manuel açık bırakılan slotlar (admin override)
-const KO_FORCE_OPEN = new Set([1,2]); // slot 1=M73 G.Afrika/Kanada, slot 2 açık
+const KO_FORCE_OPEN = new Set([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]); // tüm R32 açık
 
 function isKOMatchLocked(slot){
   if(KO_FORCE_OPEN.has(slot)) return false; // Manuel açık
