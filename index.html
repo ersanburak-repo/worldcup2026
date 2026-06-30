@@ -550,6 +550,10 @@ function u(dateStr, utcHour){
   const p=dateStr.split('-');
   return new Date(Date.UTC(+p[0],+p[1]-1,+p[2],utcHour,0,0)).getTime();
 }
+function u2(dateStr, utcHour, utcMin){
+  const p=dateStr.split('-');
+  return new Date(Date.UTC(+p[0],+p[1]-1,+p[2],utcHour,utcMin||0,0)).getTime();
+}
 
 const MATCH_KICKOFFS = {
   0: u('2026-06-11',19),  // GRUP A // Meksika vs G. Afrika → İST 11.06 22:00
@@ -624,23 +628,23 @@ const MATCH_KICKOFFS = {
   69: u('2026-06-23',22),   // Panama vs Hırvatistan → İST 24.06 01:00
   70: u('2026-06-28',1),   // İngiltere vs Panama → İST 28.06 04:00
   71: u('2026-06-28',1),   // Hırvatistan vs Gana → İST 28.06 04:00
-  // R32 Maçları (slot bazlı, knockout)
-  72: u('2026-06-28',16),  // M73 R32 → İST 28.06 19:00
-  73: u('2026-06-28',20),  // M74 R32 → İST 28.06 23:00
-  74: u('2026-06-29',0),   // M75 R32 → İST 29.06 03:00
-  75: u('2026-06-29',4),   // M76 R32 → İST 29.06 07:00
-  76: u('2026-06-29',16),  // M77 R32 → İST 29.06 19:00
-  77: u('2026-06-29',20),  // M78 R32 → İST 29.06 23:00
-  78: u('2026-06-30',0),   // M79 R32 → İST 30.06 03:00
-  79: u('2026-06-30',4),   // M80 R32 → İST 30.06 07:00
-  80: u('2026-06-30',16),  // M81 R32 → İST 30.06 19:00
-  81: u('2026-06-30',20),  // M82 R32 → İST 30.06 23:00
-  82: u('2026-07-01',0),   // M83 R32 → İST 01.07 03:00
-  83: u('2026-07-01',4),   // M84 R32 → İST 01.07 07:00
-  84: u('2026-07-01',16),  // M85 R32 → İST 01.07 19:00
-  85: u('2026-07-01',20),  // M86 R32 → İST 01.07 23:00
-  86: u('2026-07-02',0),   // M87 R32 → İST 02.07 03:00
-  87: u('2026-07-02',4),   // M88 R32 → İST 02.07 07:00
+  // R32 Maçları (slot bazlı, knockout) — Kullanıcı tarafından doğrulanmış İSTANBUL saatleri
+  72: u2('2026-06-28',19),  // M73 (slot 1) İST 28.06 22:00
+  73: u2('2026-06-29',20,30),  // M74 (slot 2) İST 29.06 23:30
+  74: u2('2026-06-30',1),  // M75 (slot 3) İST 30.06 04:00
+  75: u2('2026-06-29',17),  // M76 (slot 4) İST 29.06 20:00
+  76: u2('2026-06-30',21),  // M77 (slot 5) İST 01.07 00:00
+  77: u2('2026-06-30',17),  // M78 (slot 6) İST 30.06 20:00
+  78: u2('2026-07-01',1),  // M79 (slot 7) İST 01.07 04:00
+  79: u2('2026-07-01',16),  // M80 (slot 8) İST 01.07 19:00
+  80: u2('2026-07-02',0),  // M81 (slot 9) İST 02.07 03:00
+  81: u2('2026-07-01',20),  // M82 (slot 10) İST 01.07 23:00
+  82: u2('2026-07-02',23),  // M83 (slot 11) İST 03.07 02:00
+  83: u2('2026-07-02',19),  // M84 (slot 12) İST 02.07 22:00
+  84: u2('2026-07-03',3),  // M85 (slot 13) İST 03.07 06:00
+  85: u2('2026-07-03',22),  // M86 (slot 14) İST 04.07 01:00
+  86: u2('2026-07-04',1,30),  // M87 (slot 15) İST 04.07 04:30
+  87: u2('2026-07-03',18),  // M88 (slot 16) İST 03.07 21:00
 };
 
 const LOCK_BEFORE_MS = 15 * 60 * 1000; // 15 dakika
@@ -1486,7 +1490,16 @@ function renderBracket(){
   for(let slot=1;slot<=16;slot++){
     const km=knockoutData[slot]||{};
     const s=R32_SLOTS[slot-1];
-    const [_slot, hType, hGroup, aType, aGroup, dateLabel] = s;
+    const [_slot, hType, hGroup, aType, aGroup] = s;
+    // Gerçek kickoff zamanını MATCH_KICKOFFS'tan al (R32_SLOTS'taki eski etiket YANLIŞ, kullanma)
+    const koTs=MATCH_KICKOFFS[71+slot];
+    let dateLabel='';
+    if(koTs){
+      const d=new Date(koTs);
+      const day=d.toLocaleDateString('tr-TR',{day:'2-digit',month:'2-digit',timeZone:'Europe/Istanbul'});
+      const time=d.toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/Istanbul'});
+      dateLabel=day+' '+time;
+    }
     const homeTeam = km.home_name?{f:km.home_flag||'🏳️',n:km.home_name}:
       (hType==='1'?getGroupTeam(hGroup,1):hType==='2'?getGroupTeam(hGroup,2):get3rdPlaceForSlot(hGroup));
     const awayTeam = km.away_name?{f:km.away_flag||'🏳️',n:km.away_name}:
