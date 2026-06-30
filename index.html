@@ -1636,9 +1636,23 @@ function bkMatchCard(id,round,homeTeam,awayTeam,km,dateLabel,label){
 
   // Kullanıcı tahmin bölümü
   let predSection='';
-  // R32 (slot 1-16) için tahmin kilitli mi?
   const r32Locked = isKOMatchLocked(id);
-  if(teamsKnown&&!matchDone&&!r32Locked){
+
+  if(teamsKnown&&!matchDone&&r32Locked&&(myH!==''||myA!=='')){
+    // Kilitli ama tahmin girilmiş - salt okunur göster
+    predSection=`<div class="bk-pred-section">
+      <div class="bk-pred-label">🎯 Tahminim <span style="color:var(--text3);font-weight:400">(kilitli)</span></div>
+      <div class="bk-pred-90">
+        <div class="bk-pred-team">${hFlag}<span>${hName}</span></div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span class="bk-sc" style="min-width:32px;text-align:center">${myH}</span>
+          <span class="bk-pred-sep">–</span>
+          <span class="bk-sc" style="min-width:32px;text-align:center">${myA}</span>
+        </div>
+        <div class="bk-pred-team" style="text-align:right">${aFlag}<span>${aName}</span></div>
+      </div>
+    </div>`;
+  } else if(teamsKnown&&!matchDone&&!r32Locked){
     // 90 dk tahmini
     const pred90Draw = myH!==''&&myA!==''&&+myH===+myA;
     predSection=`<div class="bk-pred-section">
